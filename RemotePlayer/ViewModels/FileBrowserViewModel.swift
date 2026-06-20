@@ -41,7 +41,13 @@ final class FileBrowserViewModel {
 
     /// 排序 + 筛选 + 搜索后的最终列表。
     var displayedFiles: [SMBFile] {
-        var result = rawFiles
+        applySortAndFilter(to: rawFiles)
+    }
+
+    /// 对给定列表应用当前 筛选 + 搜索 + 排序，返回最终顺序。
+    /// 抽出来让 imageFiles() 等也能复用同一套顺序，保证浏览网格和图片浏览器顺序一致。
+    private func applySortAndFilter(to source: [SMBFile]) -> [SMBFile] {
+        var result = source
 
         // 筛选：类型
         switch filter {
@@ -132,7 +138,12 @@ final class FileBrowserViewModel {
     }
 
     /// 收集当前目录下所有图片（用于图片浏览器的左右切换）。
+    /// 注意：必须用和浏览网格相同的排序，否则点进去顺序不一致、首张位置错乱。
     func imageFiles() -> [SMBFile] {
-        rawFiles.filter { !$0.isDirectory && $0.kind == .image }
+        // 复用浏览网格的筛选+排序逻辑（临时把 filter 设成 imageOnly 视角），
+        // 但不改变用户当前的筛选/搜索状态——直接对图片子集应用同样的排序。
+        let images = rawFiles.filter { !$0.isDirectory && $0.kind == .image }
+        // 仅应用排序（目录已过滤掉），保持与网格一致
+        return images.sorted(by: sortFilesClosure)
     }
 }

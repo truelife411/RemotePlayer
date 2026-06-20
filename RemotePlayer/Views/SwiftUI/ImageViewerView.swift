@@ -24,20 +24,18 @@ struct ImageViewerView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @Environment(\.dismiss) private var dismiss
 
-    /// 当前索引。
-    private var currentIndex: Int {
-        siblings.firstIndex(where: { $0.id == currentFile.id }) ?? 0
-    }
+    /// 当前索引（用 Int 作 TabView selection，避免对象绑定在 sheet 里的索引错位 bug）。
+    @State private var currentIndex: Int = 0
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
 
-                TabView(selection: $currentFile) {
-                    ForEach(siblings) { file in
+                TabView(selection: $currentIndex) {
+                    ForEach(Array(siblings.enumerated()), id: \.element.id) { index, file in
                         ZoomableAsyncImage(file: file, smbService: coordinator.smbService)
-                            .tag(file)
+                            .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: siblings.count > 1 ? .automatic : .never))
@@ -62,10 +60,14 @@ struct ImageViewerView: View {
             }
             .toolbarBackground(.hidden, for: .navigationBar)
         }
-        // 若 siblings 为空（理论上不会），兜底展示当前文件
+        // onAppear 时把选中索引对齐到 currentFile（sheet 打开后只跑一次）
         .onAppear {
-            if siblings.isEmpty {
-                // 仍可正常显示 currentFile（TabView 会用唯一 tag）
+            currentIndex = siblings.firstIndex(where: { $0.id == currentFile.id }) ?? 0
+        }
+        // 翻页时同步 currentFile（供标题/父视图使用）
+        .onChange(of: currentIndex) { newIndex in
+            if newIndex >= 0 && newIndex < siblings.count {
+                currentFile = siblings[newIndex]
             }
         }
     }
@@ -132,11 +134,14 @@ struct ZoomableAsyncImage: View {
             CGSize(width: geo.size.width, height: geo.size.width / aspect) :
             CGSize(width: geo.size.height * aspect, height: geo.size.height)
 
+        // 关键：clipped 放在容器（屏幕）层级，而不是图片 fitSize 层级。
+        // 否则 scaleEffect 放大时，图片会在原 fitSize 边界处被裁断，
+        // 看起来像"在原来的框里放大"。
         Image(uiImage: image)
             .resizable()
             .scaledToFill()
             .frame(width: fitSize.width, height: fitSize.height)
-            .scaleEffect(scale)
+            .scaleEffect(scale, anchor: .center)
             .offset(offset)
             .gesture(
                 MagnificationGesture()
@@ -184,6 +189,8 @@ struct ZoomableAsyncImage: View {
                     }
                 }
             }
+            // 容器裁剪：放大内容只在屏幕范围内可见
+            .frame(width: geo.size.width, height: geo.size.height)
             .clipped()
     }
 

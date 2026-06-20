@@ -28,7 +28,7 @@ protocol PlayerViewControllerDelegate: AnyObject {
     func player(_ player: PlayerViewController, didEncounterError message: String)
 }
 
-final class PlayerViewController: UIViewController {
+final class PlayerViewController: UIViewController, PlayerGestureTarget {
 
     // MARK: - 依赖
 
@@ -171,7 +171,9 @@ final class PlayerViewController: UIViewController {
     // MARK: - 手势
 
     private func setupGestures() {
-        gestureManager.attach(to: view, player: self)
+        // 手势挂在视频容器上（位于 overlay 之下），这样 overlay 上的交互控件
+        // （slider/按钮）会先接收触摸，全屏 pan 不会和它们冲突。
+        gestureManager.attach(to: videoContainerView, player: self)
         gestureManager.delegate = self
     }
 
@@ -208,7 +210,6 @@ extension PlayerViewController: VLCMediaPlayerDelegate {
         switch state {
         case .playing:
             delegate?.player(self, didChangePlaying: true)
-            overlay.updatePlaying(true)
             cancelBufferingIndicator()
             // 起播后才应用断点续播位置，避免在 opening 阶段 seek 无效
             if !didApplyStartPosition, startPosition > 0 {
@@ -218,7 +219,6 @@ extension PlayerViewController: VLCMediaPlayerDelegate {
 
         case .paused, .stopped:
             delegate?.player(self, didChangePlaying: false)
-            overlay.updatePlaying(false)
 
         case .error:
             delegate?.player(self, didEncounterError: "播放出错，请检查网络或文件格式")
@@ -356,27 +356,42 @@ extension PlayerViewController {
     }
 
     /// 截图并保存（用于视频缩略图）。
+    ///
+    /// 关键：必须先确认 VLC 已有视频输出（`hasVideoOut`），否则在尚未解码出
+    /// 第一帧时调用 saveVideoSnapshotAt 会抛 Objective-C NSException
+    /// （Swift 的 do/catch 无法捕获 NSException）→ 整个 app 崩溃。
+    /// 网络差/起播慢时，3 秒后可能还没出画面，所以这里带重试。
     func captureSnapshot(completion: @escaping (UIImage?) -> Void) {
-        // VLC iOS 提供 lastSnapshot（需先触发截图）
-        // 用 saveVideoSnapshotAt 写临时文件再读回更可靠
-        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("vlc_snap_\(UUID().uuidString).png")
-        mediaPlayer.saveVideoSnapshot(at: tmp.path, withWidth: 0, andHeight: 0)
-        // VLC 截图是异步的，轮询读取
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
-            let img = UIImage(contentsOfFile: tmp.path)
-            try? FileManager.default.removeItem(at: tmp)
-            DispatchQueue.main.async { completion(img) }
+        // 最多重试若干次，每次间隔 1s，等待出画面
+        let maxAttempts = 10
+        func attempt(_ count: Int) {
+            guard count < maxAttempts else {
+                completion(nil)
+                return
+            }
+            // 没有视频输出（还在缓冲），稍后再试
+            guard mediaPlayer.hasVideoOut else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { attempt(count + 1) }
+                return
+            }
+            // 已有画面：截图写临时文件再读回
+            let tmp = FileManager.default.temporaryDirectory
+                .appendingPathComponent("vlc_snap_\(UUID().uuidString).png")
+            mediaPlayer.saveVideoSnapshot(at: tmp.path, withWidth: 0, andHeight: 0)
+            // VLC 截图是异步的，轮询读取
+            DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
+                let img = UIImage(contentsOfFile: tmp.path)
+                try? FileManager.default.removeItem(at: tmp)
+                DispatchQueue.main.async { completion(img) }
+            }
         }
+        attempt(0)
     }
 }
 
 // MARK: - PlayerControlOverlayDelegate
 
 extension PlayerViewController: PlayerControlOverlayDelegate {
-
-    func overlayDidTapPlayPause(_ overlay: PlayerControlOverlay) {
-        togglePlayPause()
-    }
 
     func overlay(_ overlay: PlayerControlOverlay, didSeekToProgress progress: Float) {
         guard duration > 0 else { return }
@@ -388,14 +403,6 @@ extension PlayerViewController: PlayerControlOverlayDelegate {
         setRate(rate)
     }
 
-    func overlayDidTapStepForward(_ overlay: PlayerControlOverlay) {
-        stepFrameForward()
-    }
-
-    func overlayDidTapStepBackward(_ overlay: PlayerControlOverlay) {
-        stepFrameBackward()
-    }
-
     func overlay(_ overlay: PlayerControlOverlay, didSelectSubtitle index: Int) {
         selectSubtitleTrack(at: index)
     }
@@ -403,6 +410,17 @@ extension PlayerViewController: PlayerControlOverlayDelegate {
     func overlayDidTapClose(_ overlay: PlayerControlOverlay) {
         saveProgress()
         dismiss(animated: true)
+    }
+
+    func overlay(_ overlay: PlayerControlOverlay, didChangeBrightness value: CGFloat) {
+        let clamped = max(0, min(1, value))
+        UIScreen.main.brightness = clamped
+    }
+
+    func overlay(_ overlay: PlayerControlOverlay, didChangeVolume value: Float) {
+        VolumeController.setSystemVolume(value)
+        // 系统音量变化后回写滑块（音量键调节时同步）
+        overlay.updateVolume(VolumeController.currentVolume)
     }
 }
 
@@ -412,16 +430,13 @@ extension PlayerViewController: GestureManagerDelegate {
 
     func gestureManagerDidToggleControls(_ manager: GestureManager) {
         overlay.toggleVisibility()
+        // 面板可见时同步一次亮度/音量滑块，避免初始位置不对
+        syncControlValuesToOverlay()
     }
 
-    func gestureManager(_ manager: GestureManager, didChangeBrightness value: CGFloat) {
-        UIScreen.main.brightness = max(0, min(1, value))
-        overlay.showHint(text: String(format: "亮度 %.0f%%", UIScreen.main.brightness * 100))
-    }
-
-    func gestureManager(_ manager: GestureManager, didChangeVolume value: CGFloat) {
-        VolumeController.setSystemVolume(Float(value))
-        overlay.showHint(text: String(format: "音量 %.0f%%", value * 100))
+    /// 拖动快进进行中：重置面板自动隐藏计时。
+    func gestureManagerDidScrubInProgress(_ manager: GestureManager) {
+        overlay.notifyUserInteraction()
     }
 
     func gestureManager(_ manager: GestureManager, didChangeZoom scale: CGFloat, offsetX: CGFloat, offsetY: CGFloat) {
@@ -430,18 +445,19 @@ extension PlayerViewController: GestureManagerDelegate {
             .scaledBy(x: scale, y: scale)
     }
 
-    // MARK: - 拖动快进（释放才 seek）
-
-    func gestureManager(_ manager: GestureManager, didScrubTo seconds: TimeInterval) {
-        overlay.showScrubPreview(seconds: seconds)
-    }
-
     func gestureManager(_ manager: GestureManager, didFinishScrubAt seconds: TimeInterval) {
         seek(to: seconds)
-        overlay.hideScrubPreview()
     }
 
     func gestureManagerCurrentTime(_ manager: GestureManager) -> TimeInterval {
         TimeInterval(mediaPlayer.time.intValue) / 1000.0
+    }
+
+    /// 把系统当前亮度/音量同步到面板滑块（面板显示、音量键调节时调用）。
+    private func syncControlValuesToOverlay() {
+        // 音量滑块需要先 warmUp 才能读到准确值
+        VolumeController.warmUp()
+        overlay.updateBrightness(UIScreen.main.brightness)
+        overlay.updateVolume(VolumeController.currentVolume)
     }
 }

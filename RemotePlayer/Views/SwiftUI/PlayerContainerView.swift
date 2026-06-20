@@ -83,8 +83,9 @@ struct PlayerUIView: UIViewControllerRepresentable {
         }
         vc.progressClearer = nil
 
-        // 截图注册缩略图（首帧出现后触发一次）
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak vc] in
+        // 截图注册缩略图：captureSnapshot 内部会等待 hasVideoOut 为真后再截，
+        // 故这里无需固定延迟，稍后启动即可（避免播放一进来就抢资源）。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak vc] in
             vc?.captureSnapshot { image in
                 if let image {
                     onThumbnail(image)

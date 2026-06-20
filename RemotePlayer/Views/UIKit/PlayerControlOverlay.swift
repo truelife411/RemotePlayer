@@ -3,23 +3,26 @@
 //  RemotePlayer
 //
 //  视频播放器的控制覆盖层（UIKit）。
-//  功能：
-//  - 顶部：返回按钮、标题
-//  - 中部：播放/暂停、倍速、单帧前进/后退、缓冲指示
-//  - 底部：进度条（支持拖拽跳转）、时间、字幕选择、关闭
-//  - 临时提示（亮度/音量调节反馈）
+//  布局（面板可见时）：
+//  - 顶部：返回按钮、标题、字幕按钮
+//  - 左侧：竖向亮度滑块
+//  - 右侧：竖向音量滑块
+//  - 底部：进度条（支持拖拽跳转）+ 时间 + 倍速按钮
+//  - 缓冲指示居中
+//  交互：单击屏幕切显隐；面板 5 秒无操作自动隐藏。
 //
 
 import UIKit
 
 protocol PlayerControlOverlayDelegate: AnyObject {
-    func overlayDidTapPlayPause(_ overlay: PlayerControlOverlay)
     func overlay(_ overlay: PlayerControlOverlay, didSeekToProgress progress: Float)
     func overlay(_ overlay: PlayerControlOverlay, didChangeRate rate: Float)
-    func overlayDidTapStepForward(_ overlay: PlayerControlOverlay)
-    func overlayDidTapStepBackward(_ overlay: PlayerControlOverlay)
     func overlay(_ overlay: PlayerControlOverlay, didSelectSubtitle index: Int)
     func overlayDidTapClose(_ overlay: PlayerControlOverlay)
+    /// 亮度滑块拖动回调（0...1）
+    func overlay(_ overlay: PlayerControlOverlay, didChangeBrightness value: CGFloat)
+    /// 音量滑块拖动回调（0...1）
+    func overlay(_ overlay: PlayerControlOverlay, didChangeVolume value: Float)
 }
 
 final class PlayerControlOverlay: UIView {
@@ -30,7 +33,10 @@ final class PlayerControlOverlay: UIView {
 
     private let topBar = UIView()
     private let bottomBar = UIView()
-    private let centerControls = UIView()
+    /// 左侧亮度竖向滑块容器
+    private let brightnessContainer = UIView()
+    /// 右侧音量竖向滑块容器
+    private let volumeContainer = UIView()
 
     private(set) lazy var closeButton: UIButton = {
         let b = UIButton(type: .system)
@@ -47,28 +53,16 @@ final class PlayerControlOverlay: UIView {
         return l
     }()
 
-    private(set) lazy var playPauseButton: UIButton = {
-        let b = UIButton(type: .system)
-        b.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-        b.tintColor = .white
-        b.titleLabel?.font = .systemFont(ofSize: 28)
-        b.addTarget(self, action: #selector(playPauseTapped), for: .touchUpInside)
-        return b
-    }()
-
-    private(set) lazy var stepBackwardButton: UIButton = makeStepButton("backward.frame", action: #selector(stepBackwardTapped))
-    private(set) lazy var stepForwardButton: UIButton = makeStepButton("forward.frame", action: #selector(stepForwardTapped))
-
     private(set) lazy var rateButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("1.0x", for: .normal)
+        b.setTitle("1x", for: .normal)
         b.tintColor = .white
         b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         b.addTarget(self, action: #selector(rateTapped), for: .touchUpInside)
         return b
     }()
 
-    /// 进度滑块。
+    /// 进度滑块（横向，底部）。
     private(set) lazy var slider: UISlider = {
         let s = UISlider()
         s.minimumTrackTintColor = .systemOrange
@@ -89,6 +83,38 @@ final class PlayerControlOverlay: UIView {
         return b
     }()
 
+    /// 竖向亮度滑块（旋转 90° 的 UISlider）。
+    private(set) lazy var brightnessSlider: UISlider = {
+        let s = UISlider()
+        s.minimumTrackTintColor = .systemOrange
+        s.addTarget(self, action: #selector(brightnessChanged(_:)), for: .valueChanged)
+        return s
+    }()
+
+    /// 竖向音量滑块。
+    private(set) lazy var volumeSlider: UISlider = {
+        let s = UISlider()
+        s.minimumTrackTintColor = .systemOrange
+        s.addTarget(self, action: #selector(volumeChanged(_:)), for: .valueChanged)
+        return s
+    }()
+
+    /// 亮度图标（屏幕上方显示当前值）。
+    private(set) lazy var brightnessIcon: UIImageView = {
+        let iv = UIImageView(image: UIImage(systemName: "sun.max"))
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        return iv
+    }()
+
+    /// 音量图标。
+    private(set) lazy var volumeIcon: UIImageView = {
+        let iv = UIImageView(image: UIImage(systemName: "speaker.wave.2"))
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        return iv
+    }()
+
     /// 缓冲指示。
     private(set) lazy var bufferingIndicator: UIActivityIndicatorView = {
         let a = UIActivityIndicatorView(style: .large)
@@ -97,7 +123,7 @@ final class PlayerControlOverlay: UIView {
         return a
     }()
 
-    /// 临时提示（亮度/音量）。
+    /// 临时提示（亮度/音量拖动反馈）。
     private(set) lazy var hintLabel: UILabel = {
         let l = UILabel()
         l.textColor = .white
@@ -126,6 +152,26 @@ final class PlayerControlOverlay: UIView {
 
     required init?(coder: NSCoder) { fatalError() }
 
+    /// 关键：让 overlay 的透明区域"透传"触摸给下层的 videoContainerView。
+    /// overlay 是覆盖全屏的 UIView，即使 isControlVisible=false，只要它自身
+    /// isUserInteractionEnabled=true，hitTest 就会命中它、吞掉单击 → 手势面板出不来。
+    /// 重写 hitTest：若该点命中的是 overlay 自己（而非某个可见子控件），返回 nil，
+    /// 让触摸继续向下穿透到 videoContainerView（承载全屏手势的视图）。
+    /// bufferingIndicator / hintLabel 需要正常显示但不拦截触摸，故命中它们也返回 nil。
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let result = super.hitTest(point, with: event)
+        // 命中具体控件（按钮、滑块）时正常返回
+        if let result, result !== self {
+            // bufferingIndicator / hintLabel 不拦截触摸
+            if result === bufferingIndicator || result === hintLabel {
+                return nil
+            }
+            return result
+        }
+        // 命中 overlay 自身（透明空白区域）→ 透传给下层
+        return nil
+    }
+
     // MARK: - 布局
 
     private func setupSubviews() {
@@ -137,28 +183,31 @@ final class PlayerControlOverlay: UIView {
 
         addSubview(topBar)
         addSubview(bottomBar)
-        addSubview(centerControls)
+        addSubview(brightnessContainer)
+        addSubview(volumeContainer)
         addSubview(bufferingIndicator)
         addSubview(hintLabel)
 
         topBar.addSubview(closeButton)
         topBar.addSubview(titleLabel)
-
-        centerControls.addSubview(stepBackwardButton)
-        centerControls.addSubview(playPauseButton)
-        centerControls.addSubview(stepForwardButton)
+        topBar.addSubview(subtitleButton)
 
         bottomBar.addSubview(currentTimeLabel)
         bottomBar.addSubview(slider)
         bottomBar.addSubview(durationLabel)
         bottomBar.addSubview(rateButton)
-        bottomBar.addSubview(subtitleButton)
+
+        brightnessContainer.addSubview(brightnessIcon)
+        brightnessContainer.addSubview(brightnessSlider)
+        volumeContainer.addSubview(volumeIcon)
+        volumeContainer.addSubview(volumeSlider)
     }
 
     private func setupConstraints() {
-        [topBar, bottomBar, centerControls, bufferingIndicator, hintLabel,
-         closeButton, titleLabel, playPauseButton, stepBackwardButton, stepForwardButton,
-         currentTimeLabel, slider, durationLabel, rateButton, subtitleButton].forEach {
+        [topBar, bottomBar, brightnessContainer, volumeContainer, bufferingIndicator, hintLabel,
+         closeButton, titleLabel, subtitleButton,
+         currentTimeLabel, slider, durationLabel, rateButton,
+         brightnessIcon, brightnessSlider, volumeIcon, volumeSlider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
@@ -176,27 +225,12 @@ final class PlayerControlOverlay: UIView {
 
             titleLabel.leadingAnchor.constraint(equalTo: closeButton.trailingAnchor, constant: 12),
             titleLabel.centerYAnchor.constraint(equalTo: closeButton.centerYAnchor),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: topBar.trailingAnchor, constant: -16),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: subtitleButton.leadingAnchor, constant: -12),
 
-            // 中部控制
-            centerControls.centerYAnchor.constraint(equalTo: centerYAnchor),
-            centerControls.centerXAnchor.constraint(equalTo: centerXAnchor),
-            centerControls.heightAnchor.constraint(equalToConstant: 80),
-
-            stepBackwardButton.leadingAnchor.constraint(equalTo: centerControls.leadingAnchor),
-            stepBackwardButton.centerYAnchor.constraint(equalTo: centerControls.centerYAnchor),
-            stepBackwardButton.widthAnchor.constraint(equalToConstant: 48),
-            stepBackwardButton.heightAnchor.constraint(equalToConstant: 48),
-
-            playPauseButton.centerXAnchor.constraint(equalTo: centerControls.centerXAnchor),
-            playPauseButton.centerYAnchor.constraint(equalTo: centerControls.centerYAnchor),
-            playPauseButton.widthAnchor.constraint(equalToConstant: 64),
-            playPauseButton.heightAnchor.constraint(equalToConstant: 64),
-
-            stepForwardButton.trailingAnchor.constraint(equalTo: centerControls.trailingAnchor),
-            stepForwardButton.centerYAnchor.constraint(equalTo: centerControls.centerYAnchor),
-            stepForwardButton.widthAnchor.constraint(equalToConstant: 48),
-            stepForwardButton.heightAnchor.constraint(equalToConstant: 48),
+            subtitleButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor, constant: -16),
+            subtitleButton.centerYAnchor.constraint(equalTo: closeButton.centerYAnchor),
+            subtitleButton.widthAnchor.constraint(equalToConstant: 32),
+            subtitleButton.heightAnchor.constraint(equalToConstant: 32),
 
             // 底部栏
             bottomBar.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -215,9 +249,19 @@ final class PlayerControlOverlay: UIView {
             durationLabel.centerYAnchor.constraint(equalTo: currentTimeLabel.centerYAnchor),
 
             rateButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 16),
-            subtitleButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor, constant: -16),
             rateButton.bottomAnchor.constraint(equalTo: bottomBar.safeAreaLayoutGuide.bottomAnchor, constant: -8),
-            subtitleButton.centerYAnchor.constraint(equalTo: rateButton.centerYAnchor),
+
+            // 左侧亮度容器：贴左边缘，垂直居中
+            brightnessContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            brightnessContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
+            brightnessContainer.widthAnchor.constraint(equalToConstant: 40),
+            brightnessContainer.heightAnchor.constraint(equalToConstant: 180),
+
+            // 右侧音量容器：贴右边缘，垂直居中
+            volumeContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            volumeContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
+            volumeContainer.widthAnchor.constraint(equalToConstant: 40),
+            volumeContainer.heightAnchor.constraint(equalToConstant: 180),
 
             // 缓冲指示居中
             bufferingIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -231,40 +275,66 @@ final class PlayerControlOverlay: UIView {
         ])
     }
 
-    // MARK: - 渐变背景
+    /// 竖向滑块需在 layout 完成后旋转（UISlider 默认横向，旋转 -90° 后为竖向）。
+    /// 同时更新 topBar/bottomBar 里的渐变 layer 尺寸。
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // 渐变 layer 跟随 bar 尺寸（取 sublayers 第一个）
+        if let g = topBar.layer.sublayers?.first { g.frame = topBar.bounds }
+        if let g = bottomBar.layer.sublayers?.first { g.frame = bottomBar.bounds }
+
+        // 亮度图标在容器顶部
+        brightnessIcon.frame = CGRect(x: (brightnessContainer.bounds.width - 20) / 2,
+                                      y: 0, width: 20, height: 20)
+        // 亮度滑块：横向放置后旋转
+        let bTrackHeight = brightnessContainer.bounds.height - brightnessIcon.frame.maxY - 6
+        layoutVerticalSlider(brightnessSlider,
+                             in: brightnessContainer,
+                             topPadding: brightnessIcon.frame.maxY + 6,
+                             trackHeight: bTrackHeight)
+
+        // 音量图标在容器顶部
+        volumeIcon.frame = CGRect(x: (volumeContainer.bounds.width - 20) / 2,
+                                  y: 0, width: 20, height: 20)
+        let vTrackHeight = volumeContainer.bounds.height - volumeIcon.frame.maxY - 6
+        layoutVerticalSlider(volumeSlider,
+                             in: volumeContainer,
+                             topPadding: volumeIcon.frame.maxY + 6,
+                             trackHeight: vTrackHeight)
+    }
+
+    /// 把一个 UISlider 在容器内旋转成竖向：先按横向尺寸摆好，再 transform 旋转 -90°。
+    private func layoutVerticalSlider(_ slider: UISlider, in container: UIView, topPadding: CGFloat, trackHeight: CGFloat) {
+        // 旋转后的可视高度 = 旋转前的宽度
+        let sliderWidth = trackHeight
+        let sliderHeight = container.bounds.width
+        let originX = (container.bounds.width - sliderHeight) / 2
+        let originY = topPadding
+        // 关键：先设 frame，再设 transform；transform 改变时 frame 不再可靠，故禁用 AutoLayout
+        slider.translatesAutoresizingMaskIntoConstraints = true
+        slider.frame = CGRect(x: originX, y: originY, width: sliderHeight, height: sliderWidth)
+        slider.transform = CGAffineTransform(rotationAngle: -.pi / 2)
+        // 把旋转中心对齐到目标区域中心
+        let targetCenter = CGPoint(x: container.bounds.width / 2,
+                                   y: originY + trackHeight / 2)
+        slider.center = targetCenter
+    }
+
+    // MARK: - 渐变
 
     private enum GradientPosition { case top, bottom }
 
     private func makeGradientLayer(position: GradientPosition) -> CAGradientLayer {
         let g = CAGradientLayer()
-        if position == .top {
-            g.colors = [UIColor.black.withAlphaComponent(0.6).cgColor, UIColor.clear.cgColor]
-            g.startPoint = CGPoint(x: 0.5, y: 0)
-            g.endPoint = CGPoint(x: 0.5, y: 1)
-        } else {
-            g.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.6).cgColor]
-            g.startPoint = CGPoint(x: 0.5, y: 0)
-            g.endPoint = CGPoint(x: 0.5, y: 1)
-        }
+        g.colors = [UIColor.black.withAlphaComponent(0.6).cgColor, UIColor.clear.cgColor]
+        g.locations = [0, 1]
+        g.startPoint = .init(x: 0.5, y: position == .top ? 0 : 1)
+        g.endPoint = .init(x: 0.5, y: position == .top ? 1 : 0)
         return g
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        topBar.layer.sublayers?.first?.frame = topBar.bounds
-        let bottomGrad = bottomBar.layer.sublayers?.first
-        bottomGrad?.frame = bottomBar.bounds
-    }
-
     // MARK: - 工厂
-
-    private func makeStepButton(_ icon: String, action: Selector) -> UIButton {
-        let b = UIButton(type: .system)
-        b.setImage(UIImage(systemName: icon), for: .normal)
-        b.tintColor = .white
-        b.addTarget(self, action: action, for: .touchUpInside)
-        return b
-    }
 
     private func makeTimeLabel() -> UILabel {
         let l = UILabel()
@@ -280,18 +350,6 @@ final class PlayerControlOverlay: UIView {
         delegate?.overlayDidTapClose(self)
     }
 
-    @objc private func playPauseTapped() {
-        delegate?.overlayDidTapPlayPause(self)
-    }
-
-    @objc private func stepBackwardTapped() {
-        delegate?.overlayDidTapStepBackward(self)
-    }
-
-    @objc private func stepForwardTapped() {
-        delegate?.overlayDidTapStepForward(self)
-    }
-
     private let rateOptions: [Float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
     private var rateIndex = 2 // 默认 1.0x
 
@@ -305,6 +363,7 @@ final class PlayerControlOverlay: UIView {
 
     @objc private func sliderChanged(_ sender: UISlider) {
         // 拖动中只更新 UI，跳转在释放时
+        resetAutoHideTimer()
     }
 
     @objc private func sliderReleased(_ sender: UISlider) {
@@ -313,6 +372,21 @@ final class PlayerControlOverlay: UIView {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.isUserScrubbing = false
         }
+        resetAutoHideTimer()
+    }
+
+    @objc private func brightnessChanged(_ sender: UISlider) {
+        let value = CGFloat(sender.value)
+        showHint(text: String(format: "亮度 %.0f%%", value * 100))
+        delegate?.overlay(self, didChangeBrightness: value)
+        resetAutoHideTimer()
+    }
+
+    @objc private func volumeChanged(_ sender: UISlider) {
+        let value = sender.value
+        showHint(text: String(format: "音量 %.0f%%", value * 100))
+        delegate?.overlay(self, didChangeVolume: value)
+        resetAutoHideTimer()
     }
 
     @objc private func subtitleTapped() {
@@ -357,11 +431,6 @@ final class PlayerControlOverlay: UIView {
         titleLabel.text = text
     }
 
-    func updatePlaying(_ isPlaying: Bool) {
-        let icon = isPlaying ? "pause.fill" : "play.fill"
-        playPauseButton.setImage(UIImage(systemName: icon), for: .normal)
-    }
-
     func updateBuffering(_ isBuffering: Bool) {
         if isBuffering {
             bufferingIndicator.startAnimating()
@@ -372,11 +441,8 @@ final class PlayerControlOverlay: UIView {
 
     /// 用户是否正在拖动 slider 或手势快进（避免播放器回调把进度条弹回旧位置）。
     private var isUserScrubbing = false
-    /// 当前播放时长（供 scrub 预览计算进度条位置）。
-    private var currentDuration: TimeInterval = 0
 
     func updateTime(current: TimeInterval, duration: TimeInterval) {
-        currentDuration = duration
         if !isUserScrubbing {
             currentTimeLabel.text = formatTime(current)
         }
@@ -388,24 +454,23 @@ final class PlayerControlOverlay: UIView {
         }
     }
 
-    /// 手势/进度条拖动时显示预览时间。
-    func showScrubPreview(seconds: TimeInterval) {
-        isUserScrubbing = true
-        currentTimeLabel.text = formatTime(seconds)
-        if currentDuration > 0 {
-            slider.setValue(Float(seconds / currentDuration), animated: false)
-        }
-    }
-
-    func hideScrubPreview() {
-        // 延迟复位，给 seek 完成一点时间
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.isUserScrubbing = false
-        }
-    }
-
     func updateSubtitleTracks(_ tracks: [SubtitleTrack]) {
         subtitleTracks = tracks
+    }
+
+    /// 同步亮度滑块位置（外部系统亮度变化时调用）。
+    func updateBrightness(_ value: CGFloat) {
+        // 避免回环：拖动中不覆盖
+        if !brightnessSlider.isTracking {
+            brightnessSlider.setValue(Float(value), animated: false)
+        }
+    }
+
+    /// 同步音量滑块位置。
+    func updateVolume(_ value: Float) {
+        if !volumeSlider.isTracking {
+            volumeSlider.setValue(value, animated: false)
+        }
     }
 
     // MARK: - 提示
@@ -423,21 +488,61 @@ final class PlayerControlOverlay: UIView {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
     }
 
-    // MARK: - 显隐
+    // MARK: - 显隐 + 自动隐藏
+
+    /// 控件可见时，控制条/按钮需要接收触摸（slider 拖拽、按钮点击）；
+    /// 不可见时透传触摸给下层的视频容器，让全屏手势（pan/pinch/tap）正常工作。
+    private var isControlVisible = false
+
+    /// 5 秒无操作自动隐藏计时
+    private var autoHideWork: DispatchWorkItem?
+    private let autoHideDelay: TimeInterval = 5.0
 
     func toggleVisibility() {
         isControlVisible.toggle()
         applyVisibility(animated: true)
+        if isControlVisible {
+            resetAutoHideTimer()
+        } else {
+            cancelAutoHideTimer()
+        }
     }
 
-    private var isControlVisible = false
+    /// 通知面板有用户交互（如外部手势 seek），重置自动隐藏计时。
+    func notifyUserInteraction() {
+        if isControlVisible {
+            resetAutoHideTimer()
+        }
+    }
+
+    private func resetAutoHideTimer() {
+        autoHideWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.isControlVisible else { return }
+            self.isControlVisible = false
+            self.applyVisibility(animated: true)
+        }
+        autoHideWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + autoHideDelay, execute: work)
+    }
+
+    private func cancelAutoHideTimer() {
+        autoHideWork?.cancel()
+        autoHideWork = nil
+    }
 
     private func applyVisibility(animated: Bool) {
         let alpha: CGFloat = isControlVisible ? 1 : 0
+        // 子栏的交互开关跟随可见性
+        topBar.isUserInteractionEnabled = isControlVisible
+        bottomBar.isUserInteractionEnabled = isControlVisible
+        brightnessContainer.isUserInteractionEnabled = isControlVisible
+        volumeContainer.isUserInteractionEnabled = isControlVisible
         let block = {
             self.topBar.alpha = alpha
             self.bottomBar.alpha = alpha
-            self.centerControls.alpha = alpha
+            self.brightnessContainer.alpha = alpha
+            self.volumeContainer.alpha = alpha
         }
         if animated {
             UIView.animate(withDuration: 0.25, animations: block)

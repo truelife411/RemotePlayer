@@ -65,6 +65,9 @@ final class StreamingHTTPResponse: HTTPResponse {
     /// 否则 VLCKit 收不到流结束信号 → 永远停在 buffering，且 seek 时旧连接的数据
     /// 会与新的 Range 请求交错。这里用 TCPSocket.close(when: .afterWriting)：
     /// GCDAsyncSocket 会先刷完所有已排队的写入，再优雅断开，给出干净的 EOF。
+    ///
+    /// 说明：GCDAsyncSocket 的 write 不会抛异常，错误通过 delegate 回调上报；
+    /// 对端断开时，剩余 write 会被忽略，close(when:) 也是幂等的，故无需 try/catch。
     override func writeBody(to stream: WriteStream, timeout: TimeInterval) {
         self.bodyTimeout = timeout
         let provider = self.provider
