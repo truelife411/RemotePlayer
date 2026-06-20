@@ -1,0 +1,35 @@
+PODS:
+  - AMSMB2 (2.7.1)
+  - CocoaAsyncSocket (7.6.5)
+  - HTTPParserC (2.9.4)
+  - MobileVLCKit (3.7.3)
+  - Telegraph (0.30.0):
+    - CocoaAsyncSocket (~> 7.6)
+    - HTTPParserC (~> 2.9)
+
+DEPENDENCIES:
+  - AMSMB2 (~> 2.7.1)
+  - MobileVLCKit (from `LocalPods/MobileVLCKit.podspec.json`)
+  - Telegraph (~> 0.30)
+
+SPEC REPOS:
+  trunk:
+    - AMSMB2
+    - CocoaAsyncSocket
+    - HTTPParserC
+    - Telegraph
+
+EXTERNAL SOURCES:
+  MobileVLCKit:
+    :podspec: LocalPods/MobileVLCKit.podspec.json
+
+SPEC CHECKSUMS:
+  AMSMB2: 4017852863a688970e8c4f38a4fae9826fbbec34
+  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
+  HTTPParserC: aea14c3d2d4ac5beb3988781daa36dfa62e0d9ef
+  MobileVLCKit: ced624ec0c982e76792dc8820d29163a2f615a3d
+  Telegraph: 12576b119324138e4929792af9e5a1085c2ecbc1
+
+PODFILE CHECKSUM: 8356183aafbca772ea0d9f294b2f9a1bdc1a6d6d
+
+COCOAPODS: 1.16.2

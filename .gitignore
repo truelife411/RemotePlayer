@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+xcuserdata/
+*.moved-aside
+
+# CocoaPods
+Pods/
+
+# VLCKit 预编译二进制（252MB，通过 file:// 源下载到 /tmp 或 LocalPods，不入库）
+LocalPods/*.tar.xz
+LocalPods/*.zip
+
+# 本地构建产物
+build/
+
+# 备份目录
+backup/

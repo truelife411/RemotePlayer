@@ -1,0 +1,138 @@
+//
+//  FileBrowserViewModel.swift
+//  RemotePlayer
+//
+//  文件浏览视图模型。
+//  管理：当前路径栈、文件列表、加载状态、排序、筛选、搜索。
+//
+
+import SwiftUI
+
+@MainActor
+@Observable
+final class FileBrowserViewModel {
+
+    private let smbService: SMBService
+
+    /// 当前所在目录（相对共享根）。根为 ""。
+    private(set) var currentPath: String = ""
+
+    /// 导航栈（用于返回上一级）。
+    private(set) var pathStack: [String] = []
+
+    /// 原始文件列表（未排序/筛选）。
+    private(set) var rawFiles: [SMBFile] = []
+
+    /// 加载状态。
+    var isLoading = false
+    var errorMessage: String?
+
+    // MARK: - 用户偏好
+
+    var sortOption: FileSortOption = .nameAsc
+    var filter: FileFilter = .all
+    var searchText: String = ""
+
+    init(smbService: SMBService) {
+        self.smbService = smbService
+    }
+
+    // MARK: - 处理后的列表
+
+    /// 排序 + 筛选 + 搜索后的最终列表。
+    var displayedFiles: [SMBFile] {
+        var result = rawFiles
+
+        // 筛选：类型
+        switch filter {
+        case .all:
+            break
+        case .videoOnly:
+            result = result.filter { !$0.isDirectory && $0.kind == .video }
+        case .imageOnly:
+            result = result.filter { !$0.isDirectory && $0.kind == .image }
+        }
+
+        // 搜索：文件名模糊
+        if !searchText.isEmpty {
+            let kw = searchText.lowercased()
+            result = result.filter { $0.name.lowercased().contains(kw) }
+        }
+
+        // 排序：目录永远在前
+        let dirs = result.filter { $0.isDirectory }
+        let files = result.filter { !$0.isDirectory }
+        return dirs.sorted(by: sortDirsClosure) + files.sorted(by: sortFilesClosure)
+    }
+
+    private var sortDirsClosure: (SMBFile, SMBFile) -> Bool {
+        switch sortOption {
+        case .nameAsc, .sizeAsc, .modifiedAsc:
+            return { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .nameDesc, .sizeDesc, .modifiedDesc:
+            return { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        }
+    }
+
+    private var sortFilesClosure: (SMBFile, SMBFile) -> Bool {
+        switch sortOption {
+        case .nameAsc:      return { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .nameDesc:     return { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        case .sizeAsc:      return { $0.size < $1.size }
+        case .sizeDesc:     return { $0.size > $1.size }
+        case .modifiedAsc:  return { ($0.modifiedDate ?? .distantPast) < ($1.modifiedDate ?? .distantPast) }
+        case .modifiedDesc: return { ($0.modifiedDate ?? .distantPast) > ($1.modifiedDate ?? .distantPast) }
+        }
+    }
+
+    // MARK: - 当前目录标题
+
+    /// 用于导航栏标题的目录名。
+    var currentDirName: String {
+        if currentPath.isEmpty { return "共享根目录" }
+        return (currentPath as NSString).lastPathComponent
+    }
+
+    /// 是否在根目录（无法返回上一级）。
+    var isAtRoot: Bool { pathStack.isEmpty }
+
+    // MARK: - 操作
+
+    /// 加载当前目录。
+    func reload() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            rawFiles = try await smbService.listDirectory(at: currentPath)
+        } catch {
+            errorMessage = error.localizedDescription
+            rawFiles = []
+        }
+        isLoading = false
+    }
+
+    /// 进入子目录。
+    func enter(directory: SMBFile) async {
+        pathStack.append(currentPath)
+        currentPath = directory.path
+        await reload()
+    }
+
+    /// 返回上一级。
+    func goBack() async {
+        guard let prev = pathStack.popLast() else { return }
+        currentPath = prev
+        await reload()
+    }
+
+    /// 跳转到指定路径（用于搜索后定位等）。
+    func navigate(to path: String) async {
+        currentPath = path
+        await reload()
+    }
+
+    /// 收集当前目录下所有图片（用于图片浏览器的左右切换）。
+    func imageFiles() -> [SMBFile] {
+        rawFiles.filter { !$0.isDirectory && $0.kind == .image }
+    }
+}

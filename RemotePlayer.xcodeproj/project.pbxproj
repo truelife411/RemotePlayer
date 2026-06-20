@@ -1,0 +1,452 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0707D70C8ACF2F118295F7BF /* ImageViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA8B7ACB500085922D40D77 /* ImageViewerView.swift */; };
+		19D28533E66B4BD9688706A5 /* ServerEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EB2A1A0A2B7FBB96B810308 /* ServerEditView.swift */; };
+		25A42606D6B4800217CC102D /* SMBFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5225665AE117B12DDBF0FDE /* SMBFile.swift */; };
+		2BA8DE53F3B0683795F778CA /* ServerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B330A6F9D6FE239F6892397F /* ServerStore.swift */; };
+		31BF68A32A5E0388248C9C7D /* Pods_RemotePlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA88226C1A10B13EDFE05CD3 /* Pods_RemotePlayer.framework */; };
+		364270C2C571A1B2DD6CF118 /* ProxyServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DD7E69DCDA54DEA9EAC7BC /* ProxyServer.swift */; };
+		3C54E84AA8126C56BD4FD77B /* PlayerControlOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E304925B78B53EC678A2320D /* PlayerControlOverlay.swift */; };
+		3C720E38191F87C268167DCA /* PlaybackStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B33B611A993DCD878BF7B57 /* PlaybackStore.swift */; };
+		63E0C18B151BCCC65067BACF /* ServerConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E39CFBEE65A41AAED4C223 /* ServerConfig.swift */; };
+		65AA4ACC802CFC2E6D9A64E3 /* StreamHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */; };
+		6A1FF640942B91B4FFD55C9C /* VolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA75F709819131A2346DBF26 /* VolumeController.swift */; };
+		7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */; };
+		8194DD2048A503190B6FE15F /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F799D21F5A5AE675D5857AA3 /* AppError.swift */; };
+		8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */; };
+		8EEE0B1A56F954832F989023 /* PlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD5025D0A1DEBD21497F86D /* PlayerViewController.swift */; };
+		94660B79ACF09DC5D9B2A1DC /* StreamingHTTPResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66AC97C9CE5AE6C22CFD6144 /* StreamingHTTPResponse.swift */; };
+		AD52F4BAB55C1A3663AED983 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9312DFA2D58BF849B05A4E77 /* PlaybackState.swift */; };
+		B927767769408CF46379895D /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB23DAECE8E1BFBBD6CA29ED /* AppCoordinator.swift */; };
+		BBF70C8ED9F931F43F20DF03 /* ServerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD8028B63D43A8A31100F32A /* ServerListView.swift */; };
+		C1EFB206BDE89071872ED995 /* FileRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */; };
+		CDA718CE7928B787E2D9205F /* GestureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D827C3FCD19718E206B94E /* GestureManager.swift */; };
+		D353237E4B6EB58D2C089D99 /* FileBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */; };
+		D62A5E0389512828919F70E2 /* PlayerContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */; };
+		DF5A406B6A1F4FDDE4AEA4AD /* FileBrowserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6758C46D2FF91916AA0E7086 /* FileBrowserViewModel.swift */; };
+		E81B2DB0144C0F30826E53AF /* SMBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AF66A293FC5E42F29C10A5 /* SMBService.swift */; };
+		F43376C77D5428241E9FA6CF /* RemotePlayerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE272A7B47CA8640E0483C57 /* RemotePlayerApp.swift */; };
+		FDB4A2A609B533DFC46A0483 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D2509CF342DEBF847D5422F2 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0EB2A1A0A2B7FBB96B810308 /* ServerEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerEditView.swift; sourceTree = "<group>"; };
+		134CD8CF75AD326A36B2164E /* RemotePlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemotePlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FD5025D0A1DEBD21497F86D /* PlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewController.swift; sourceTree = "<group>"; };
+		44E39CFBEE65A41AAED4C223 /* ServerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerConfig.swift; sourceTree = "<group>"; };
+		53BC5B91F77B8853F0DB305A /* Pods-RemotePlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RemotePlayer.debug.xcconfig"; path = "Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer.debug.xcconfig"; sourceTree = "<group>"; };
+		55AF66A293FC5E42F29C10A5 /* SMBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBService.swift; sourceTree = "<group>"; };
+		5B33B611A993DCD878BF7B57 /* PlaybackStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackStore.swift; sourceTree = "<group>"; };
+		66AC97C9CE5AE6C22CFD6144 /* StreamingHTTPResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingHTTPResponse.swift; sourceTree = "<group>"; };
+		6758C46D2FF91916AA0E7086 /* FileBrowserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBrowserViewModel.swift; sourceTree = "<group>"; };
+		74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerContainerView.swift; sourceTree = "<group>"; };
+		756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileBrowserView.swift; sourceTree = "<group>"; };
+		810A80AB0AFC4E529B9E706B /* RemotePlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RemotePlayer-Bridging-Header.h"; sourceTree = "<group>"; };
+		9312DFA2D58BF849B05A4E77 /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackState.swift; sourceTree = "<group>"; };
+		AB23DAECE8E1BFBBD6CA29ED /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		AD8028B63D43A8A31100F32A /* ServerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerListView.swift; sourceTree = "<group>"; };
+		B330A6F9D6FE239F6892397F /* ServerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStore.swift; sourceTree = "<group>"; };
+		C1B77C791B46AB035ADFEC15 /* Pods-RemotePlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RemotePlayer.release.xcconfig"; path = "Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer.release.xcconfig"; sourceTree = "<group>"; };
+		CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileRowView.swift; sourceTree = "<group>"; };
+		D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamHandler.swift; sourceTree = "<group>"; };
+		D2509CF342DEBF847D5422F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D5225665AE117B12DDBF0FDE /* SMBFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBFile.swift; sourceTree = "<group>"; };
+		D9D827C3FCD19718E206B94E /* GestureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureManager.swift; sourceTree = "<group>"; };
+		E304925B78B53EC678A2320D /* PlayerControlOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlOverlay.swift; sourceTree = "<group>"; };
+		EA75F709819131A2346DBF26 /* VolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeController.swift; sourceTree = "<group>"; };
+		EE272A7B47CA8640E0483C57 /* RemotePlayerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotePlayerApp.swift; sourceTree = "<group>"; };
+		EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailService.swift; sourceTree = "<group>"; };
+		F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
+		F799D21F5A5AE675D5857AA3 /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
+		F8DD7E69DCDA54DEA9EAC7BC /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyServer.swift; sourceTree = "<group>"; };
+		FA88226C1A10B13EDFE05CD3 /* Pods_RemotePlayer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RemotePlayer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA8B7ACB500085922D40D77 /* ImageViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewerView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A2F99D3286091AB03A35D7DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				31BF68A32A5E0388248C9C7D /* Pods_RemotePlayer.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		092CA84C375C5A94EC7AD02C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				EE272A7B47CA8640E0483C57 /* RemotePlayerApp.swift */,
+			);
+			path = RemotePlayer/App;
+			sourceTree = "<group>";
+		};
+		2E27A7CFB23E900F28B62297 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D2509CF342DEBF847D5422F2 /* Assets.xcassets */,
+			);
+			path = RemotePlayer/Resources;
+			sourceTree = "<group>";
+		};
+		41A56BD6F63B1374E7BD706D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FA88226C1A10B13EDFE05CD3 /* Pods_RemotePlayer.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		71CC4B1393226A968F856CB1 = {
+			isa = PBXGroup;
+			children = (
+				092CA84C375C5A94EC7AD02C /* App */,
+				7367FDDC39A2EF1056E1EB5D /* Models */,
+				F7848213CA1750F8B9A94798 /* Services */,
+				B83F10FC6AD5158D091CFE19 /* ViewModels */,
+				B9F933826D06F6C47AC930CC /* SwiftUI */,
+				CC55000BB690C81D5C805694 /* UIKit */,
+				BDFB131EBEFB677EB7747637 /* SupportingFiles */,
+				2E27A7CFB23E900F28B62297 /* Resources */,
+				B731411F651864EB8688B3B2 /* Products */,
+				7B9A99B5D912610D1A5F5096 /* Pods */,
+				41A56BD6F63B1374E7BD706D /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		7367FDDC39A2EF1056E1EB5D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F799D21F5A5AE675D5857AA3 /* AppError.swift */,
+				9312DFA2D58BF849B05A4E77 /* PlaybackState.swift */,
+				D5225665AE117B12DDBF0FDE /* SMBFile.swift */,
+				44E39CFBEE65A41AAED4C223 /* ServerConfig.swift */,
+			);
+			path = RemotePlayer/Models;
+			sourceTree = "<group>";
+		};
+		7B9A99B5D912610D1A5F5096 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				53BC5B91F77B8853F0DB305A /* Pods-RemotePlayer.debug.xcconfig */,
+				C1B77C791B46AB035ADFEC15 /* Pods-RemotePlayer.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		B731411F651864EB8688B3B2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				134CD8CF75AD326A36B2164E /* RemotePlayer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B83F10FC6AD5158D091CFE19 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AB23DAECE8E1BFBBD6CA29ED /* AppCoordinator.swift */,
+				6758C46D2FF91916AA0E7086 /* FileBrowserViewModel.swift */,
+				F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */,
+			);
+			path = RemotePlayer/ViewModels;
+			sourceTree = "<group>";
+		};
+		B9F933826D06F6C47AC930CC /* SwiftUI */ = {
+			isa = PBXGroup;
+			children = (
+				756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */,
+				CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */,
+				FAA8B7ACB500085922D40D77 /* ImageViewerView.swift */,
+				74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */,
+				0EB2A1A0A2B7FBB96B810308 /* ServerEditView.swift */,
+				AD8028B63D43A8A31100F32A /* ServerListView.swift */,
+			);
+			path = RemotePlayer/Views/SwiftUI;
+			sourceTree = "<group>";
+		};
+		BDFB131EBEFB677EB7747637 /* SupportingFiles */ = {
+			isa = PBXGroup;
+			children = (
+				810A80AB0AFC4E529B9E706B /* RemotePlayer-Bridging-Header.h */,
+			);
+			path = RemotePlayer/SupportingFiles;
+			sourceTree = "<group>";
+		};
+		CC55000BB690C81D5C805694 /* UIKit */ = {
+			isa = PBXGroup;
+			children = (
+				D9D827C3FCD19718E206B94E /* GestureManager.swift */,
+				E304925B78B53EC678A2320D /* PlayerControlOverlay.swift */,
+				3FD5025D0A1DEBD21497F86D /* PlayerViewController.swift */,
+				EA75F709819131A2346DBF26 /* VolumeController.swift */,
+			);
+			path = RemotePlayer/Views/UIKit;
+			sourceTree = "<group>";
+		};
+		F7848213CA1750F8B9A94798 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5B33B611A993DCD878BF7B57 /* PlaybackStore.swift */,
+				F8DD7E69DCDA54DEA9EAC7BC /* ProxyServer.swift */,
+				55AF66A293FC5E42F29C10A5 /* SMBService.swift */,
+				B330A6F9D6FE239F6892397F /* ServerStore.swift */,
+				D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */,
+				66AC97C9CE5AE6C22CFD6144 /* StreamingHTTPResponse.swift */,
+				EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */,
+			);
+			path = RemotePlayer/Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		16AF79AE1A67FA0879BC0C7B /* RemotePlayer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3DECA02024DD42F2989FBBF0 /* Build configuration list for PBXNativeTarget "RemotePlayer" */;
+			buildPhases = (
+				B039DC4EA3DDFC318F25295C /* [CP] Check Pods Manifest.lock */,
+				9EEEA87FF10133CF14B39BB0 /* Sources */,
+				F41B01F553D220BC1AFB6B96 /* Resources */,
+				A2F99D3286091AB03A35D7DE /* Frameworks */,
+				3F02BABE9361BE694AA3EB83 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RemotePlayer;
+			productName = RemotePlayer;
+			productReference = 134CD8CF75AD326A36B2164E /* RemotePlayer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A826817F1329DD6A82305D6F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+			};
+			buildConfigurationList = D13B01E4A5E6E74D403CB27A /* Build configuration list for PBXProject "RemotePlayer" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 71CC4B1393226A968F856CB1;
+			productRefGroup = B731411F651864EB8688B3B2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				16AF79AE1A67FA0879BC0C7B /* RemotePlayer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F41B01F553D220BC1AFB6B96 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDB4A2A609B533DFC46A0483 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3F02BABE9361BE694AA3EB83 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B039DC4EA3DDFC318F25295C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-RemotePlayer-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9EEEA87FF10133CF14B39BB0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F43376C77D5428241E9FA6CF /* RemotePlayerApp.swift in Sources */,
+				8194DD2048A503190B6FE15F /* AppError.swift in Sources */,
+				AD52F4BAB55C1A3663AED983 /* PlaybackState.swift in Sources */,
+				25A42606D6B4800217CC102D /* SMBFile.swift in Sources */,
+				63E0C18B151BCCC65067BACF /* ServerConfig.swift in Sources */,
+				3C720E38191F87C268167DCA /* PlaybackStore.swift in Sources */,
+				364270C2C571A1B2DD6CF118 /* ProxyServer.swift in Sources */,
+				E81B2DB0144C0F30826E53AF /* SMBService.swift in Sources */,
+				2BA8DE53F3B0683795F778CA /* ServerStore.swift in Sources */,
+				65AA4ACC802CFC2E6D9A64E3 /* StreamHandler.swift in Sources */,
+				94660B79ACF09DC5D9B2A1DC /* StreamingHTTPResponse.swift in Sources */,
+				7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */,
+				B927767769408CF46379895D /* AppCoordinator.swift in Sources */,
+				DF5A406B6A1F4FDDE4AEA4AD /* FileBrowserViewModel.swift in Sources */,
+				8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */,
+				D353237E4B6EB58D2C089D99 /* FileBrowserView.swift in Sources */,
+				C1EFB206BDE89071872ED995 /* FileRowView.swift in Sources */,
+				0707D70C8ACF2F118295F7BF /* ImageViewerView.swift in Sources */,
+				D62A5E0389512828919F70E2 /* PlayerContainerView.swift in Sources */,
+				19D28533E66B4BD9688706A5 /* ServerEditView.swift in Sources */,
+				BBF70C8ED9F931F43F20DF03 /* ServerListView.swift in Sources */,
+				CDA718CE7928B787E2D9205F /* GestureManager.swift in Sources */,
+				3C54E84AA8126C56BD4FD77B /* PlayerControlOverlay.swift in Sources */,
+				8EEE0B1A56F954832F989023 /* PlayerViewController.swift in Sources */,
+				6A1FF640942B91B4FFD55C9C /* VolumeController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		30E96B8558F3229E77D6FE90 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		45054062FD78DBA771F5DBD6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 53BC5B91F77B8853F0DB305A /* Pods-RemotePlayer.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7TB7XW97GG;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "远程播放器";
+				INFOPLIST_KEY_NSAppTransportSecurity = "{\"NSAllowsLocalNetworking\": true}";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "本应用需要访问局域网以连接您的 Windows 共享文件夹播放视频和图片。";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.remoteplayer.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "RemotePlayer/SupportingFiles/RemotePlayer-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5B5790B1CE17D45FEADBBEBB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1B77C791B46AB035ADFEC15 /* Pods-RemotePlayer.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7TB7XW97GG;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "远程播放器";
+				INFOPLIST_KEY_NSAppTransportSecurity = "{\"NSAllowsLocalNetworking\": true}";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "本应用需要访问局域网以连接您的 Windows 共享文件夹播放视频和图片。";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.remoteplayer.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "RemotePlayer/SupportingFiles/RemotePlayer-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7590D4FEE61E218EADD4DD0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3DECA02024DD42F2989FBBF0 /* Build configuration list for PBXNativeTarget "RemotePlayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45054062FD78DBA771F5DBD6 /* Debug */,
+				5B5790B1CE17D45FEADBBEBB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D13B01E4A5E6E74D403CB27A /* Build configuration list for PBXProject "RemotePlayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7590D4FEE61E218EADD4DD0B /* Debug */,
+				30E96B8558F3229E77D6FE90 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A826817F1329DD6A82305D6F /* Project object */;
+}
