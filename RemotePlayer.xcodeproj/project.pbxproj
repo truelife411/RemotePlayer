@@ -19,6 +19,7 @@
 		65AA4ACC802CFC2E6D9A64E3 /* StreamHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */; };
 		6A1FF640942B91B4FFD55C9C /* VolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA75F709819131A2346DBF26 /* VolumeController.swift */; };
 		7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */; };
+		B1C2D3E4F5A60001SRCHIDX /* SearchIndexService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60002SRCHIDX /* SearchIndexService.swift */; };
 		8194DD2048A503190B6FE15F /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F799D21F5A5AE675D5857AA3 /* AppError.swift */; };
 		8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */; };
 		8EEE0B1A56F954832F989023 /* PlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD5025D0A1DEBD21497F86D /* PlayerViewController.swift */; };
@@ -27,6 +28,7 @@
 		B927767769408CF46379895D /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB23DAECE8E1BFBBD6CA29ED /* AppCoordinator.swift */; };
 		BBF70C8ED9F931F43F20DF03 /* ServerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD8028B63D43A8A31100F32A /* ServerListView.swift */; };
 		C1EFB206BDE89071872ED995 /* FileRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */; };
+		A1B2C3D4E5F60001FILEGRID /* FileGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002FILEGRID /* FileGridCell.swift */; };
 		CDA718CE7928B787E2D9205F /* GestureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D827C3FCD19718E206B94E /* GestureManager.swift */; };
 		D353237E4B6EB58D2C089D99 /* FileBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */; };
 		D62A5E0389512828919F70E2 /* PlayerContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */; };
@@ -55,6 +57,7 @@
 		B330A6F9D6FE239F6892397F /* ServerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStore.swift; sourceTree = "<group>"; };
 		C1B77C791B46AB035ADFEC15 /* Pods-RemotePlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RemotePlayer.release.xcconfig"; path = "Target Support Files/Pods-RemotePlayer/Pods-RemotePlayer.release.xcconfig"; sourceTree = "<group>"; };
 		CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileRowView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60002FILEGRID /* FileGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileGridCell.swift; sourceTree = "<group>"; };
 		D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamHandler.swift; sourceTree = "<group>"; };
 		D2509CF342DEBF847D5422F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D5225665AE117B12DDBF0FDE /* SMBFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBFile.swift; sourceTree = "<group>"; };
@@ -63,6 +66,7 @@
 		EA75F709819131A2346DBF26 /* VolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeController.swift; sourceTree = "<group>"; };
 		EE272A7B47CA8640E0483C57 /* RemotePlayerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotePlayerApp.swift; sourceTree = "<group>"; };
 		EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailService.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60002SRCHIDX /* SearchIndexService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndexService.swift; sourceTree = "<group>"; };
 		F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		F799D21F5A5AE675D5857AA3 /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
 		F8DD7E69DCDA54DEA9EAC7BC /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyServer.swift; sourceTree = "<group>"; };
@@ -167,6 +171,7 @@
 			children = (
 				756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */,
 				CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */,
+				A1B2C3D4E5F60002FILEGRID /* FileGridCell.swift */,
 				FAA8B7ACB500085922D40D77 /* ImageViewerView.swift */,
 				74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */,
 				0EB2A1A0A2B7FBB96B810308 /* ServerEditView.swift */,
@@ -204,6 +209,7 @@
 				D0B698D4E00D15A316CB0CF4 /* StreamHandler.swift */,
 				66AC97C9CE5AE6C22CFD6144 /* StreamingHTTPResponse.swift */,
 				EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */,
+				B1C2D3E4F5A60002SRCHIDX /* SearchIndexService.swift */,
 			);
 			path = RemotePlayer/Services;
 			sourceTree = "<group>";
@@ -328,11 +334,13 @@
 				65AA4ACC802CFC2E6D9A64E3 /* StreamHandler.swift in Sources */,
 				94660B79ACF09DC5D9B2A1DC /* StreamingHTTPResponse.swift in Sources */,
 				7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */,
+				B1C2D3E4F5A60001SRCHIDX /* SearchIndexService.swift in Sources */,
 				B927767769408CF46379895D /* AppCoordinator.swift in Sources */,
 				DF5A406B6A1F4FDDE4AEA4AD /* FileBrowserViewModel.swift in Sources */,
 				8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */,
 				D353237E4B6EB58D2C089D99 /* FileBrowserView.swift in Sources */,
 				C1EFB206BDE89071872ED995 /* FileRowView.swift in Sources */,
+				A1B2C3D4E5F60001FILEGRID /* FileGridCell.swift in Sources */,
 				0707D70C8ACF2F118295F7BF /* ImageViewerView.swift in Sources */,
 				D62A5E0389512828919F70E2 /* PlayerContainerView.swift in Sources */,
 				19D28533E66B4BD9688706A5 /* ServerEditView.swift in Sources */,
@@ -369,6 +377,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "远程播放器";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_NSAppTransportSecurity = "{\"NSAllowsLocalNetworking\": true}";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "本应用需要访问局域网以连接您的 Windows 共享文件夹播放视频和图片。";
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -397,6 +406,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "远程播放器";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_NSAppTransportSecurity = "{\"NSAllowsLocalNetworking\": true}";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "本应用需要访问局域网以连接您的 Windows 共享文件夹播放视频和图片。";
 				INFOPLIST_KEY_UIBackgroundModes = audio;

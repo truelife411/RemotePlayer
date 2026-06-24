@@ -14,6 +14,10 @@ final class FileBrowserViewModel {
 
     private let smbService: SMBService
 
+    /// 全目录搜索索引（由 FileBrowserView 注入，连接后自动后台构建）。
+    /// 搜索框非空时用它做全共享搜索；为空时正常浏览当前目录。
+    var searchIndex: SearchIndexService?
+
     /// 当前所在目录（相对共享根）。根为 ""。
     private(set) var currentPath: String = ""
 
@@ -40,12 +44,27 @@ final class FileBrowserViewModel {
     // MARK: - 处理后的列表
 
     /// 排序 + 筛选 + 搜索后的最终列表。
+    ///
+    /// 搜索框为空 → 显示当前目录内容（排序/筛选后）。
+    /// 搜索框非空 → 全目录搜索结果（查 searchIndex，来自整个共享），
+    ///   并对其应用同样的筛选 + 排序，保证搜索结果与浏览模式体验一致。
     var displayedFiles: [SMBFile] {
-        applySortAndFilter(to: rawFiles)
+        // 搜索模式：全目录搜索结果也要过筛选 + 排序
+        if !searchText.trimmingCharacters(in: .whitespaces).isEmpty,
+           let searchIndex {
+            return applySortAndFilter(to: searchIndex.search(keyword: searchText))
+        }
+        // 浏览模式：当前目录
+        return applySortAndFilter(to: rawFiles)
+    }
+
+    /// 当前是否处于搜索模式（用于 UI 判断：是否显示搜索结果/进度提示）。
+    var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     /// 对给定列表应用当前 筛选 + 搜索 + 排序，返回最终顺序。
-    /// 抽出来让 imageFiles() 等也能复用同一套顺序，保证浏览网格和图片浏览器顺序一致。
+    /// 仅用于浏览模式（当前目录）。搜索模式走 searchIndex，不走这里。
     private func applySortAndFilter(to source: [SMBFile]) -> [SMBFile] {
         var result = source
 
@@ -57,12 +76,6 @@ final class FileBrowserViewModel {
             result = result.filter { !$0.isDirectory && $0.kind == .video }
         case .imageOnly:
             result = result.filter { !$0.isDirectory && $0.kind == .image }
-        }
-
-        // 搜索：文件名模糊
-        if !searchText.isEmpty {
-            let kw = searchText.lowercased()
-            result = result.filter { $0.name.lowercased().contains(kw) }
         }
 
         // 排序：目录永远在前

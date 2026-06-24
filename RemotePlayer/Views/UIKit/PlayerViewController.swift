@@ -387,6 +387,55 @@ extension PlayerViewController {
         }
         attempt(0)
     }
+
+    /// 在指定秒数处截图（用于视频缩略图）。
+    ///
+    /// 流程：等播放器 seekable & 时长就绪 → seek 到目标位置 → 等帧渲染 → 截图。
+    /// - 短视频会 clamp 到 `min(target, duration * 0.1)`，避免截到片尾黑屏。
+    /// - 截完会把播放位置恢复到截图前用户所在的位置，不打断观看。
+    /// - 若用户当前已在该位置附近（如断点续播正好 > target），则直接截当前位置，省去来回 seek。
+    func captureThumbnail(at targetSeconds: TimeInterval, completion: @escaping (UIImage?) -> Void) {
+        // 1. 等待 seekable + 时长就绪（复用重试机制）
+        let maxWait = 15
+        func waitReady(_ count: Int) {
+            guard count < maxWait else {
+                // 等不到就绪，退化成截当前帧
+                captureSnapshot(completion: completion)
+                return
+            }
+            guard mediaPlayer.isSeekable, duration > 0 else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { waitReady(count + 1) }
+                return
+            }
+            decideAndSeek()
+        }
+
+        // 2. 决定目标秒数并 seek
+        func decideAndSeek() {
+            let clamped = min(targetSeconds, duration * 0.1)
+            let currentTime = TimeInterval(mediaPlayer.time.intValue) / 1000.0
+
+            // 用户当前位置离目标足够近（或已经超过），直接截当前帧，不打扰用户
+            if abs(currentTime - clamped) < 3 || currentTime >= clamped {
+                captureSnapshot(completion: completion)
+                return
+            }
+
+            // 记录用户当前位置，截完恢复
+            let restoreTime = currentTime
+            seek(to: clamped)
+            // 等 ~1.2s 让目标帧解码渲染出来
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                self.captureSnapshot { img in
+                    // 截完恢复用户位置
+                    self.seek(to: restoreTime)
+                    completion(img)
+                }
+            }
+        }
+
+        waitReady(0)
+    }
 }
 
 // MARK: - PlayerControlOverlayDelegate

@@ -251,17 +251,17 @@ final class PlayerControlOverlay: UIView {
             rateButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 16),
             rateButton.bottomAnchor.constraint(equalTo: bottomBar.safeAreaLayoutGuide.bottomAnchor, constant: -8),
 
-            // 左侧亮度容器：贴左边缘，垂直居中
+            // 左侧亮度容器：贴左边缘，垂直居中，高度大些好拖动
             brightnessContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             brightnessContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
-            brightnessContainer.widthAnchor.constraint(equalToConstant: 40),
-            brightnessContainer.heightAnchor.constraint(equalToConstant: 180),
+            brightnessContainer.widthAnchor.constraint(equalToConstant: 48),
+            brightnessContainer.heightAnchor.constraint(equalToConstant: 280),
 
             // 右侧音量容器：贴右边缘，垂直居中
             volumeContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             volumeContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
-            volumeContainer.widthAnchor.constraint(equalToConstant: 40),
-            volumeContainer.heightAnchor.constraint(equalToConstant: 180),
+            volumeContainer.widthAnchor.constraint(equalToConstant: 48),
+            volumeContainer.heightAnchor.constraint(equalToConstant: 280),
 
             // 缓冲指示居中
             bufferingIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),

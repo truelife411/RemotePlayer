@@ -25,6 +25,8 @@ final class AppCoordinator {
     let smbService = SMBService()
     /// 本地 HTTP 代理。
     let proxyServer = ProxyServer()
+    /// 全目录搜索索引（连接后后台构建，断开即失效）。
+    let searchIndex = SearchIndexService()
 
     // MARK: - 状态
 
@@ -55,6 +57,8 @@ final class AppCoordinator {
             if proxyServer.port == nil {
                 try proxyServer.start()
             }
+            // 后台构建全目录搜索索引（不阻塞连接流程）
+            searchIndex.startBuilding(smbService: smbService)
             return true
         } catch let error as AppError {
             lastError = error
@@ -69,6 +73,8 @@ final class AppCoordinator {
 
     /// 断开当前连接。
     func disconnect() {
+        // 先取消搜索索引（在 SMB 断开前，避免索引任务继续用已失效的连接）
+        searchIndex.cancel()
         smbService.disconnect()
         connectedServer = nil
         // 代理随连接结束停止（释放端口）

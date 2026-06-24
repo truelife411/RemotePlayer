@@ -1,13 +1,15 @@
 //
-//  FileRowView.swift
+//  FileGridCell.swift
 //  RemotePlayer
 //
-//  文件列表的单行：缩略图 + 名称 + 大小/时间 + 断点续播进度。
+//  文件网格格子（iPad / regular 宽度布局用）。
+//  复用 FileRowView 的缩略图与续播进度加载逻辑，但改为竖向紧凑布局：
+//  顶部大图标/缩略图 + 下方文件名 + 大小/日期。
 //
 
 import SwiftUI
 
-struct FileRowView: View {
+struct FileGridCell: View {
 
     let file: SMBFile
     let serverID: UUID?
@@ -19,16 +21,16 @@ struct FileRowView: View {
     @State private var progress: Double = 0 // 0 表示无续播
 
     var body: some View {
-        HStack(spacing: 12) {
-            // 缩略图 / 图标
+        VStack(alignment: .leading, spacing: 8) {
             iconView
-                .frame(width: 52, height: 52)
+                .frame(height: 110)
+                .frame(maxWidth: .infinity)
 
-            // 文件信息
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(file.name)
-                    .font(.body)
-                    .lineLimit(1)
+                    .font(.subheadline)
+                    .lineLimit(2)
+                    .foregroundStyle(.primary)
 
                 // 所在目录路径（仅搜索结果显示）
                 if let subtitle {
@@ -39,17 +41,10 @@ struct FileRowView: View {
                 }
 
                 if !file.isDirectory {
-                    HStack(spacing: 8) {
-                        Text(file.formattedSize)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("·")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(file.formattedDate)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(file.formattedSize)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
                 // 断点续播进度条
@@ -59,16 +54,12 @@ struct FileRowView: View {
                         .frame(height: 3)
                 }
             }
-
-            Spacer()
-
-            if file.isDirectory {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
         }
-        .padding(.vertical, 4)
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
         .task(id: file.id) {
             await loadThumbnail()
             loadProgress()
@@ -80,43 +71,40 @@ struct FileRowView: View {
     @ViewBuilder
     private var iconView: some View {
         if file.isDirectory {
-            // 目录统一图标
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(Color.accentColor.opacity(0.12))
                 .overlay {
                     Image(systemName: "folder.fill")
-                        .font(.title2)
+                        .font(.system(size: 38))
                         .foregroundStyle(Color.accentColor)
                 }
         } else if let thumbnail {
             Image(uiImage: thumbnail)
                 .resizable()
                 .scaledToFill()
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
-            // 占位符
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(Color.gray.opacity(0.1))
                 .overlay {
                     Image(systemName: file.kind.systemImage)
-                        .font(.title3)
+                        .font(.system(size: 32))
                         .foregroundStyle(.secondary)
                 }
         }
     }
 
-    // MARK: - 数据加载
+    // MARK: - 数据加载（与 FileRowView 一致的逻辑）
 
     private func loadThumbnail() async {
         guard !file.isDirectory else { return }
         switch file.kind {
         case .image:
             // 图片缩略图：读取 SMB 原图 → 缩放 → 缓存（内存+磁盘）
-            // 失败则保持占位图标
             let thumb = await ThumbnailService.shared.imageThumbnail(
                 smbService: coordinator.smbService,
                 filePath: file.path,
-                size: CGSize(width: 200, height: 200)
+                size: CGSize(width: 240, height: 240)
             )
             self.thumbnail = thumb
         case .video:
