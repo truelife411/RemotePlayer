@@ -19,6 +19,7 @@ struct ServerListView: View {
     @State private var servers: [ServerConfig] = []
     @State private var editingServer: ServerConfig?
     @State private var showAddSheet = false
+    @State private var showSettings = false
     @State private var connectingID: UUID?
 
     var body: some View {
@@ -31,12 +32,25 @@ struct ServerListView: View {
         }
         .navigationTitle("服务器")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showAddSheet = true
                 } label: {
                     Image(systemName: "plus")
                 }
+            }
+        }
+        // 设置页（sheet 呈现，自带 NavigationStack）
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
             }
         }
         .sheet(isPresented: $showAddSheet) {
@@ -78,33 +92,79 @@ struct ServerListView: View {
             get: { selection },
             set: { selection = $0 }
         )) {
-            ForEach(servers) { server in
-                // 用 server.id 作 tag，配合 List selection
-                ServerRow(server: server,
-                          isConnecting: connectingID == server.id,
-                          isConnected: coordinator.connectedServer?.id == server.id)
-                    .tag(server.id)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        Task { await connect(to: server) }
-                    }
-                    // 左滑出 编辑/删除
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
-                            delete(server)
-                        } label: {
-                            Label("删除", systemImage: "trash")
+            Section {
+                ForEach(servers) { server in
+                    // 用 server.id 作 tag，配合 List selection
+                    ServerRow(server: server,
+                              isConnecting: connectingID == server.id,
+                              isConnected: coordinator.connectedServer?.id == server.id)
+                        .tag(server.id)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            Task { await connect(to: server) }
                         }
-                        Button {
-                            editingServer = server
-                        } label: {
-                            Label("编辑", systemImage: "pencil")
+                        // 左滑出 编辑/删除
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                delete(server)
+                            } label: {
+                                Label("删除", systemImage: "trash")
+                            }
+                            Button {
+                                editingServer = server
+                            } label: {
+                                Label("编辑", systemImage: "pencil")
+                            }
+                            .tint(.blue)
                         }
-                        .tint(.blue)
-                    }
+                }
+            } footer: {
+                // 索引进度：连接后后台构建索引，底部显示进度
+                indexingFooter
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    // MARK: - 索引进度
+
+    @ViewBuilder
+    private var indexingFooter: some View {
+        if coordinator.isConnected,
+           case .indexing(let fc, let dc) = coordinator.searchIndex.state {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("正在索引… \(fc) 个文件 / \(dc) 个目录")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        } else if coordinator.isConnected,
+                  case .ready(let fc) = coordinator.searchIndex.state {
+            // 索引完成：显示文件总数
+            HStack {
+                Image(systemName: "checkmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(.green.opacity(0.8))
+                Text("共 \(fc) 个文件（搜索可用）")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        } else if coordinator.isConnected,
+                  case .failed(let msg) = coordinator.searchIndex.state {
+            HStack {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.yellow)
+                Text("索引失败：\(msg)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 4)
+        }
     }
 
     // MARK: - 动作

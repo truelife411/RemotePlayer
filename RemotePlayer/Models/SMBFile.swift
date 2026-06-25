@@ -73,7 +73,7 @@ enum FileFilter: String, Codable, CaseIterable, Identifiable {
 }
 
 /// 远程文件/目录的统一模型。
-struct SMBFile: Identifiable, Hashable {
+struct SMBFile: Identifiable, Hashable, Codable {
     /// 稳定标识：使用完整路径，路径唯一。
     let id: String
     /// 显示文件名（不含路径）。

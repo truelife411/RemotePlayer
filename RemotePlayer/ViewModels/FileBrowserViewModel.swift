@@ -46,15 +46,18 @@ final class FileBrowserViewModel {
     /// 排序 + 筛选 + 搜索后的最终列表。
     ///
     /// 搜索框为空 → 显示当前目录内容（排序/筛选后）。
-    /// 搜索框非空 → 全目录搜索结果（查 searchIndex，来自整个共享），
-    ///   并对其应用同样的筛选 + 排序，保证搜索结果与浏览模式体验一致。
+    /// 搜索框非空 → 全目录搜索结果（查 searchIndex，来自整个共享）。
+    ///
+    /// 关键：搜索时**自动忽略类型筛选**（等效"全部"），保证用户能搜到所有类型文件，
+    /// 避免被之前的筛选条件（如"仅视频"）坑住。清空搜索后筛选自然恢复。
+    /// 搜索结果仍然应用排序（和浏览模式排序一致）。
     var displayedFiles: [SMBFile] {
-        // 搜索模式：全目录搜索结果也要过筛选 + 排序
+        // 搜索模式：只排序，不应用类型筛选
         if !searchText.trimmingCharacters(in: .whitespaces).isEmpty,
            let searchIndex {
-            return applySortAndFilter(to: searchIndex.search(keyword: searchText))
+            return applySortOnly(to: searchIndex.search(keyword: searchText))
         }
-        // 浏览模式：当前目录
+        // 浏览模式：当前目录，应用筛选 + 排序
         return applySortAndFilter(to: rawFiles)
     }
 
@@ -81,6 +84,14 @@ final class FileBrowserViewModel {
         // 排序：目录永远在前
         let dirs = result.filter { $0.isDirectory }
         let files = result.filter { !$0.isDirectory }
+        return dirs.sorted(by: sortDirsClosure) + files.sorted(by: sortFilesClosure)
+    }
+
+    /// 只排序、不应用类型筛选（用于搜索模式——搜索时自动搜全部类型）。
+    private func applySortOnly(to source: [SMBFile]) -> [SMBFile] {
+        // 排序：目录永远在前
+        let dirs = source.filter { $0.isDirectory }
+        let files = source.filter { !$0.isDirectory }
         return dirs.sorted(by: sortDirsClosure) + files.sorted(by: sortFilesClosure)
     }
 

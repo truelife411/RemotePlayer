@@ -83,12 +83,11 @@ struct PlayerUIView: UIViewControllerRepresentable {
         }
         vc.progressClearer = nil
 
-        // 截图注册缩略图：在 60 秒处截取一帧（比开头更有代表性）。
-        // captureThumbnail 内部会等待 seekable & 时长就绪，再 seek 到目标位置截图，
-        // 截完会恢复用户当前播放位置，不打断观看。短视频自动 clamp 到时长 10%。
-        // 延迟 3 秒启动，避免起播瞬间抢资源。
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak vc] in
-            vc?.captureThumbnail(at: 60) { image in
+        // 截图注册缩略图：等视频自然播放几秒后，截取当前帧（已过片头）。
+        // 不做 seek，避免用户看到"跳60秒→截→跳回"的跳动。
+        // captureSnapshot 内部会等待 hasVideoOut 为真后再截（带重试）。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { [weak vc] in
+            vc?.captureSnapshot { image in
                 if let image {
                     onThumbnail(image)
                 }

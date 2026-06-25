@@ -47,6 +47,11 @@ final class AppCoordinator {
     /// 连接到指定服务器。
     @discardableResult
     func connect(to config: ServerConfig) async -> Bool {
+        // 切换服务器时先断开旧连接，清空旧索引 checkpoint
+        if let oldID = connectedServer?.id {
+            disconnect()
+            searchIndex.reset(serverID: oldID.uuidString)
+        }
         isConnecting = true
         defer { isConnecting = false }
         do {
@@ -57,8 +62,8 @@ final class AppCoordinator {
             if proxyServer.port == nil {
                 try proxyServer.start()
             }
-            // 后台构建全目录搜索索引（不阻塞连接流程）
-            searchIndex.startBuilding(smbService: smbService)
+            // 注意：搜索索引不再在连接时自动构建（大 NAS 每次重建太慢）。
+            // 改为首次进入搜索页时按需构建，搜索页工具栏也提供手动"重建"按钮。
             return true
         } catch let error as AppError {
             lastError = error
@@ -73,8 +78,10 @@ final class AppCoordinator {
 
     /// 断开当前连接。
     func disconnect() {
-        // 先取消搜索索引（在 SMB 断开前，避免索引任务继续用已失效的连接）
-        searchIndex.cancel()
+        // 保存索引断点（下次同服务器续做），然后停索引任务
+        let sid = connectedServer?.id.uuidString
+        searchIndex.cancel()  // 停任务，保留 checkpoint
+        // 注意：不在这里 reset——reset 只在切换服务器时做（connect 里调）
         smbService.disconnect()
         connectedServer = nil
         // 代理随连接结束停止（释放端口）

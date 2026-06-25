@@ -210,6 +210,7 @@ extension PlayerViewController: VLCMediaPlayerDelegate {
         switch state {
         case .playing:
             delegate?.player(self, didChangePlaying: true)
+            overlay.updatePlaying(true)
             cancelBufferingIndicator()
             // 起播后才应用断点续播位置，避免在 opening 阶段 seek 无效
             if !didApplyStartPosition, startPosition > 0 {
@@ -219,6 +220,7 @@ extension PlayerViewController: VLCMediaPlayerDelegate {
 
         case .paused, .stopped:
             delegate?.player(self, didChangePlaying: false)
+            overlay.updatePlaying(false)
 
         case .error:
             delegate?.player(self, didEncounterError: "播放出错，请检查网络或文件格式")
@@ -459,6 +461,10 @@ extension PlayerViewController: PlayerControlOverlayDelegate {
     func overlayDidTapClose(_ overlay: PlayerControlOverlay) {
         saveProgress()
         dismiss(animated: true)
+    }
+
+    func overlayDidTapPlayPause(_ overlay: PlayerControlOverlay) {
+        togglePlayPause()
     }
 
     func overlay(_ overlay: PlayerControlOverlay, didChangeBrightness value: CGFloat) {

@@ -18,6 +18,10 @@ struct FileBrowserView: View {
     // 播放目标
     @State private var videoToPlay: SMBFile?
     @State private var imageViewerFile: SMBFile?
+    /// 是否展示独立搜索页。
+    @State private var showSearch = false
+    /// iPad 上网格/列表切换。仅 regular（iPad）下生效，compact（iPhone）永远列表。
+    @State private var isGridView = true
 
     var body: some View {
         Group {
@@ -40,85 +44,35 @@ struct FileBrowserView: View {
             PlayerContainerView(file: file, serverID: coordinator.connectedServer?.id)
         }
         .fullScreenCover(item: $imageViewerFile) { file in
-            // 搜索模式下文件可能来自任意目录，传 [file] 单图模式（无左右切换）；
             // 浏览模式用当前目录的图片兄弟姐妹（可左右切换）。
-            let siblings = (viewModel?.isSearching ?? false)
-                ? [file]
-                : (viewModel?.imageFiles() ?? [file])
+            let siblings = viewModel?.imageFiles() ?? [file]
             ImageViewerView(currentFile: file,
                             siblings: siblings,
                             serverID: coordinator.connectedServer?.id)
+        }
+        // 独立搜索页
+        .fullScreenCover(isPresented: $showSearch) {
+            SearchView()
+                .environment(coordinator)
         }
     }
 
     @ViewBuilder
     private func content(viewModel: FileBrowserViewModel) -> some View {
-        VStack(spacing: 0) {
-            // 常驻搜索栏（默认显示，不用下拉）
-            searchBar(viewModel: viewModel)
-            // 索引构建进度（搜索模式 + 正在建索引时显示）
-            indexProgress(viewModel: viewModel)
-            // regular（iPad 等）用网格，compact（iPhone 等）用列表
+        // iPhone（compact）：永远列表
+        // iPad（regular）：按 isGridView 切换网格/列表
+        Group {
             if hSizeClass == .regular {
-                gridView(viewModel: viewModel)
+                if isGridView {
+                    gridView(viewModel: viewModel)
+                } else {
+                    iPadListView(viewModel: viewModel)
+                }
             } else {
                 listView(viewModel: viewModel)
             }
         }
-        .browserChrome(viewModel: viewModel)
-    }
-
-    // MARK: - 索引进度
-
-    @ViewBuilder
-    private func indexProgress(viewModel: FileBrowserViewModel) -> some View {
-        // 仅在搜索模式下、索引正在构建时显示进度
-        let idx = coordinator.searchIndex
-        if viewModel.isSearching, idx.isIndexing {
-            HStack(spacing: 8) {
-                ProgressView()
-                    .controlSize(.small)
-                if case .indexing(let fc, let dc) = idx.state {
-                    Text("正在索引… 已扫描 \(fc) 个文件 / \(dc) 个目录")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(Color(.secondarySystemBackground).opacity(0.5))
-        }
-    }
-
-    // MARK: - 搜索栏（常驻显示）
-
-    @ViewBuilder
-    private func searchBar(viewModel: FileBrowserViewModel) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField("搜索文件名", text: Binding(
-                get: { viewModel.searchText },
-                set: { viewModel.searchText = $0 }
-            ))
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            if !viewModel.searchText.isEmpty {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        .browserChrome(viewModel: viewModel, isGridView: $isGridView, onSearch: { showSearch = true })
     }
 
     // MARK: - 列表布局（iPhone）
@@ -128,8 +82,7 @@ struct FileBrowserView: View {
         List {
             ForEach(viewModel.displayedFiles) { file in
                 FileRowView(file: file,
-                            serverID: coordinator.connectedServer?.id,
-                            subtitle: viewModel.isSearching ? file.parentPath : nil)
+                            serverID: coordinator.connectedServer?.id)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         handleTap(file, viewModel: viewModel)
@@ -147,8 +100,7 @@ struct FileBrowserView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 14)],
                       spacing: 14) {
                 ForEach(viewModel.displayedFiles) { file in
-                    FileGridCell(file: file, serverID: coordinator.connectedServer?.id,
-                                 subtitle: viewModel.isSearching ? file.parentPath : nil)
+                    FileGridCell(file: file, serverID: coordinator.connectedServer?.id)
                         .contentShape(Rectangle())
                         .onTapGesture {
                             handleTap(file, viewModel: viewModel)
@@ -156,6 +108,76 @@ struct FileBrowserView: View {
                 }
             }
             .padding(16)
+        }
+    }
+
+    // MARK: - iPad 列表布局（带可点击排序的列头）
+
+    @ViewBuilder
+    private func iPadListView(viewModel: FileBrowserViewModel) -> some View {
+        List {
+            ForEach(viewModel.displayedFiles) { file in
+                FileRowView(file: file,
+                            serverID: coordinator.connectedServer?.id)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        handleTap(file, viewModel: viewModel)
+                    }
+            }
+        }
+        .listStyle(.insetGrouped)
+        // 列表顶部插入可点击排序的列头
+        .safeAreaInset(edge: .top, spacing: 0) {
+            sortHeader(viewModel: viewModel)
+        }
+    }
+
+    /// 列头行：名称 | 大小 | 修改时间，点击切换升/降序。
+    @ViewBuilder
+    private func sortHeader(viewModel: FileBrowserViewModel) -> some View {
+        HStack(spacing: 0) {
+            sortColumn(title: "名称",
+                       asc: .nameAsc, desc: .nameDesc, viewModel: viewModel)
+            sortColumn(title: "大小",
+                       asc: .sizeAsc, desc: .sizeDesc, viewModel: viewModel)
+            sortColumn(title: "修改时间",
+                       asc: .modifiedAsc, desc: .modifiedDesc, viewModel: viewModel)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .background(.ultraThinMaterial)
+    }
+
+    @ViewBuilder
+    private func sortColumn(title: String,
+                             asc: FileSortOption, desc: FileSortOption,
+                             viewModel: FileBrowserViewModel) -> some View {
+        let current = viewModel.sortOption
+        let isActive = (current == asc || current == desc)
+        let isAsc = (current == asc)
+
+        Button {
+            if isActive {
+                viewModel.sortOption = isAsc ? desc : asc
+            } else {
+                viewModel.sortOption = asc
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(isActive ? .semibold : .regular)
+                if isActive {
+                    Image(systemName: isAsc ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+            }
+            .foregroundStyle(isActive ? .primary : .secondary)
+        }
+        .buttonStyle(.plain)
+
+        if asc != .modifiedDesc {
+            Spacer(minLength: 8)
         }
     }
 
@@ -182,6 +204,11 @@ struct FileBrowserView: View {
 
 private struct BrowserChrome: ViewModifier {
     let viewModel: FileBrowserViewModel
+    /// iPad 网格/列表切换。
+    @Binding var isGridView: Bool
+    let onSearch: () -> Void
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     func body(content: Content) -> some View {
         content
@@ -189,6 +216,18 @@ private struct BrowserChrome: ViewModifier {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    // 搜索按钮 → 进入独立搜索页
+                    Button(action: onSearch) {
+                        Image(systemName: "magnifyingglass")
+                    }
+                    // iPad 网格/列表切换（仅 regular 可见）
+                    if hSizeClass == .regular {
+                        Button {
+                            isGridView.toggle()
+                        } label: {
+                            Image(systemName: isGridView ? "list.bullet" : "square.grid.2x2")
+                        }
+                    }
                     sortMenu
                     filterMenu
                 }
@@ -209,7 +248,11 @@ private struct BrowserChrome: ViewModifier {
                 if viewModel.isLoading && viewModel.rawFiles.isEmpty {
                     ProgressView("正在读取目录…")
                 } else if viewModel.displayedFiles.isEmpty && !viewModel.isLoading {
-                    ContentUnavailableView.search(text: viewModel.searchText)
+                    ContentUnavailableView {
+                        Label("空文件夹", systemImage: "folder")
+                    } description: {
+                        Text("此目录没有文件")
+                    }
                 }
             }
             .alert("读取失败", isPresented: Binding(
@@ -254,8 +297,8 @@ private struct BrowserChrome: ViewModifier {
 }
 
 private extension View {
-    func browserChrome(viewModel: FileBrowserViewModel) -> some View {
-        modifier(BrowserChrome(viewModel: viewModel))
+    func browserChrome(viewModel: FileBrowserViewModel, isGridView: Binding<Bool>, onSearch: @escaping () -> Void) -> some View {
+        modifier(BrowserChrome(viewModel: viewModel, isGridView: isGridView, onSearch: onSearch))
     }
 }
 

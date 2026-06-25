@@ -22,9 +22,18 @@ struct FileGridCell: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            iconView
-                .frame(height: 110)
-                .frame(maxWidth: .infinity)
+            // 图标区：用 GeometryReader 拿到确定宽度，
+            // 配合固定高度 + clipped，彻底裁掉 scaledToFill 缩略图的溢出。
+            // 之前 iconView 自己加 frame 会和外层嵌套、裁剪层级混乱导致溢出，
+            // 现在统一在这里用确定尺寸 + clipped 收口。
+            GeometryReader { geo in
+                iconView
+                    .frame(width: geo.size.width, height: 110)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .frame(height: 110)
+            .contentShape(Rectangle())
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(file.name)
@@ -71,6 +80,7 @@ struct FileGridCell: View {
     @ViewBuilder
     private var iconView: some View {
         if file.isDirectory {
+            // 目录：图标居中，背景填满
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.accentColor.opacity(0.12))
                 .overlay {
@@ -79,10 +89,11 @@ struct FileGridCell: View {
                         .foregroundStyle(Color.accentColor)
                 }
         } else if let thumbnail {
+            // 缩略图：scaledToFill 会溢出，裁剪交给外层 body 的 frame+clipped 统一处理。
+            // 这里不要自己加 frame，否则和外层 frame 形成嵌套、裁剪层级混乱导致溢出。
             Image(uiImage: thumbnail)
                 .resizable()
                 .scaledToFill()
-                .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.gray.opacity(0.1))

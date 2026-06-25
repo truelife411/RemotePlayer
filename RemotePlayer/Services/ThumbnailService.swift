@@ -117,10 +117,26 @@ actor ThumbnailService {
         return hashed as NSString
     }
 
+    /// 缩放图片到指定尺寸（保持原比例，aspectFit）。
+    ///
+    /// 之前用 draw(in:) 直接拉伸会扭曲非方形图片的比例（缩略图变形）。
+    /// 改为 aspectFit：等比缩放到目标内，不足部分留空，图像区域大小不变，
+    /// 由调用方决定如何裁剪/填充显示。
     private func resize(_ image: UIImage, to size: CGSize) -> UIImage {
+        let imageSize = image.size
+        guard imageSize.width > 0, imageSize.height > 0 else {
+            return image
+        }
+        let scaleW = size.width / imageSize.width
+        let scaleH = size.height / imageSize.height
+        let scale = min(scaleW, scaleH) // aspectFit：取较小比例
+        let drawSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        // 居中绘制
+        let drawOrigin = CGPoint(x: (size.width - drawSize.width) / 2,
+                                 y: (size.height - drawSize.height) / 2)
         let renderer = UIGraphicsImageRenderer(size: size)
         return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
+            image.draw(in: CGRect(origin: drawOrigin, size: drawSize))
         }
     }
 

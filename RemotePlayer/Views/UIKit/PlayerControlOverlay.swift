@@ -19,6 +19,8 @@ protocol PlayerControlOverlayDelegate: AnyObject {
     func overlay(_ overlay: PlayerControlOverlay, didChangeRate rate: Float)
     func overlay(_ overlay: PlayerControlOverlay, didSelectSubtitle index: Int)
     func overlayDidTapClose(_ overlay: PlayerControlOverlay)
+    /// 播放/暂停按钮。
+    func overlayDidTapPlayPause(_ overlay: PlayerControlOverlay)
     /// 亮度滑块拖动回调（0...1）
     func overlay(_ overlay: PlayerControlOverlay, didChangeBrightness value: CGFloat)
     /// 音量滑块拖动回调（0...1）
@@ -59,6 +61,15 @@ final class PlayerControlOverlay: UIView {
         b.tintColor = .white
         b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         b.addTarget(self, action: #selector(rateTapped), for: .touchUpInside)
+        return b
+    }()
+
+    /// 播放/暂停按钮（右下角）。
+    private(set) lazy var playPauseButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+        b.tintColor = .white
+        b.addTarget(self, action: #selector(playPauseTapped), for: .touchUpInside)
         return b
     }()
 
@@ -196,17 +207,22 @@ final class PlayerControlOverlay: UIView {
         bottomBar.addSubview(slider)
         bottomBar.addSubview(durationLabel)
         bottomBar.addSubview(rateButton)
+        bottomBar.addSubview(playPauseButton)
 
         brightnessContainer.addSubview(brightnessIcon)
         brightnessContainer.addSubview(brightnessSlider)
         volumeContainer.addSubview(volumeIcon)
         volumeContainer.addSubview(volumeSlider)
+
+        // slider 点击手势：点击进度条直接跳转（不只拖）
+        let sliderTap = UITapGestureRecognizer(target: self, action: #selector(sliderTapped(_:)))
+        slider.addGestureRecognizer(sliderTap)
     }
 
     private func setupConstraints() {
         [topBar, bottomBar, brightnessContainer, volumeContainer, bufferingIndicator, hintLabel,
          closeButton, titleLabel, subtitleButton,
-         currentTimeLabel, slider, durationLabel, rateButton,
+         currentTimeLabel, slider, durationLabel, rateButton, playPauseButton,
          brightnessIcon, brightnessSlider, volumeIcon, volumeSlider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -238,10 +254,18 @@ final class PlayerControlOverlay: UIView {
             bottomBar.bottomAnchor.constraint(equalTo: bottomAnchor),
             bottomBar.heightAnchor.constraint(equalToConstant: 96),
 
+            // 时间标签（左上角，进度条上方）
             currentTimeLabel.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 16),
             currentTimeLabel.bottomAnchor.constraint(equalTo: slider.topAnchor, constant: -8),
 
-            slider.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 16),
+            // 播放/暂停按钮：进度条同一行，左边
+            playPauseButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 16),
+            playPauseButton.centerYAnchor.constraint(equalTo: slider.centerYAnchor),
+            playPauseButton.widthAnchor.constraint(equalToConstant: 32),
+            playPauseButton.heightAnchor.constraint(equalToConstant: 32),
+
+            // 进度条：按钮右边，留 10pt 间距
+            slider.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 10),
             slider.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor, constant: -16),
             slider.bottomAnchor.constraint(equalTo: rateButton.topAnchor, constant: -4),
 
@@ -361,6 +385,10 @@ final class PlayerControlOverlay: UIView {
         delegate?.overlay(self, didChangeRate: rate)
     }
 
+    @objc private func playPauseTapped() {
+        delegate?.overlayDidTapPlayPause(self)
+    }
+
     @objc private func sliderChanged(_ sender: UISlider) {
         // 拖动中只更新 UI，跳转在释放时
         resetAutoHideTimer()
@@ -369,6 +397,20 @@ final class PlayerControlOverlay: UIView {
     @objc private func sliderReleased(_ sender: UISlider) {
         isUserScrubbing = true
         delegate?.overlay(self, didSeekToProgress: sender.value)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.isUserScrubbing = false
+        }
+        resetAutoHideTimer()
+    }
+
+    /// 点击进度条直接跳转（不走拖动）。
+    @objc private func sliderTapped(_ gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: slider)
+        let fraction = Float(point.x / slider.bounds.width)
+        let value = max(0, min(1, fraction))
+        slider.setValue(value, animated: true)
+        isUserScrubbing = true
+        delegate?.overlay(self, didSeekToProgress: value)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.isUserScrubbing = false
         }
@@ -437,6 +479,12 @@ final class PlayerControlOverlay: UIView {
         } else {
             bufferingIndicator.stopAnimating()
         }
+    }
+
+    /// 同步播放/暂停按钮图标。
+    func updatePlaying(_ isPlaying: Bool) {
+        let name = isPlaying ? "pause.fill" : "play.fill"
+        playPauseButton.setImage(UIImage(systemName: name), for: .normal)
     }
 
     /// 用户是否正在拖动 slider 或手势快进（避免播放器回调把进度条弹回旧位置）。

@@ -20,6 +20,9 @@
 		6A1FF640942B91B4FFD55C9C /* VolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA75F709819131A2346DBF26 /* VolumeController.swift */; };
 		7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */; };
 		B1C2D3E4F5A60001SRCHIDX /* SearchIndexService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60002SRCHIDX /* SearchIndexService.swift */; };
+		B1C2D3E4F5A60003SRCHVM /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60004SRCHVM /* SearchViewModel.swift */; };
+		B1C2D3E4F5A60005SRCHVW /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A60006SRCHVW /* SearchView.swift */; };
+		C2D3E4F5A6B70001SETTINGS /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B70002SETTINGS /* SettingsView.swift */; };
 		8194DD2048A503190B6FE15F /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F799D21F5A5AE675D5857AA3 /* AppError.swift */; };
 		8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */; };
 		8EEE0B1A56F954832F989023 /* PlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD5025D0A1DEBD21497F86D /* PlayerViewController.swift */; };
@@ -67,6 +70,9 @@
 		EE272A7B47CA8640E0483C57 /* RemotePlayerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotePlayerApp.swift; sourceTree = "<group>"; };
 		EEB3763C677876A2C1D462B3 /* ThumbnailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailService.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A60002SRCHIDX /* SearchIndexService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndexService.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60004SRCHVM /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A60006SRCHVW /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		C2D3E4F5A6B70002SETTINGS /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		F799D21F5A5AE675D5857AA3 /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
 		F8DD7E69DCDA54DEA9EAC7BC /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyServer.swift; sourceTree = "<group>"; };
@@ -162,6 +168,7 @@
 				AB23DAECE8E1BFBBD6CA29ED /* AppCoordinator.swift */,
 				6758C46D2FF91916AA0E7086 /* FileBrowserViewModel.swift */,
 				F449D5AD80387F5A7A1ABC59 /* PlayerViewModel.swift */,
+				B1C2D3E4F5A60004SRCHVM /* SearchViewModel.swift */,
 			);
 			path = RemotePlayer/ViewModels;
 			sourceTree = "<group>";
@@ -172,6 +179,8 @@
 				756C767A4C3C4CEA99EBD4CF /* FileBrowserView.swift */,
 				CBC52DCB5007D45E25F30EE1 /* FileRowView.swift */,
 				A1B2C3D4E5F60002FILEGRID /* FileGridCell.swift */,
+				B1C2D3E4F5A60006SRCHVW /* SearchView.swift */,
+				C2D3E4F5A6B70002SETTINGS /* SettingsView.swift */,
 				FAA8B7ACB500085922D40D77 /* ImageViewerView.swift */,
 				74ADB9A0862E800AFF70FA86 /* PlayerContainerView.swift */,
 				0EB2A1A0A2B7FBB96B810308 /* ServerEditView.swift */,
@@ -335,6 +344,9 @@
 				94660B79ACF09DC5D9B2A1DC /* StreamingHTTPResponse.swift in Sources */,
 				7F98AAFBCE313FA210F66C9A /* ThumbnailService.swift in Sources */,
 				B1C2D3E4F5A60001SRCHIDX /* SearchIndexService.swift in Sources */,
+				B1C2D3E4F5A60003SRCHVM /* SearchViewModel.swift in Sources */,
+				B1C2D3E4F5A60005SRCHVW /* SearchView.swift in Sources */,
+				C2D3E4F5A6B70001SETTINGS /* SettingsView.swift in Sources */,
 				B927767769408CF46379895D /* AppCoordinator.swift in Sources */,
 				DF5A406B6A1F4FDDE4AEA4AD /* FileBrowserViewModel.swift in Sources */,
 				8927667275C96734112A2F66 /* PlayerViewModel.swift in Sources */,
