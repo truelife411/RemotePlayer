@@ -17,6 +17,8 @@ import UIKit
 protocol GestureManagerDelegate: AnyObject {
     /// 单击：切换控制面板显隐
     func gestureManagerDidToggleControls(_ manager: GestureManager)
+    /// 指针移动：用于唤起控制面板并重置自动隐藏计时
+    func gestureManagerDidPointerMove(_ manager: GestureManager)
     /// 缩放/平移：更新视频容器的 transform
     func gestureManager(_ manager: GestureManager, didChangeZoom scale: CGFloat, offsetX: CGFloat, offsetY: CGFloat)
     /// 快进快退完成：跳转到指定秒数（松手时触发，无预览）
@@ -26,6 +28,7 @@ protocol GestureManagerDelegate: AnyObject {
 }
 
 extension GestureManagerDelegate {
+    func gestureManagerDidPointerMove(_ manager: GestureManager) {}
     func gestureManager(_ manager: GestureManager, didFinishScrubAt seconds: TimeInterval) {}
     func gestureManagerCurrentTime(_ manager: GestureManager) -> TimeInterval { 0 }
 }
@@ -76,6 +79,10 @@ final class GestureManager: NSObject {
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
         pinch.delegate = self
         view.addGestureRecognizer(pinch)
+        
+        // hover: 指针移动
+        let hover = UIHoverGestureRecognizer(target: self, action: #selector(handleHover(_:)))
+        view.addGestureRecognizer(hover)
     }
 
     // MARK: - 手势处理
@@ -86,6 +93,15 @@ final class GestureManager: NSObject {
 
     @objc private func handleDoubleTap() {
         player?.togglePlayPause()
+    }
+
+    @objc private func handleHover(_ gesture: UIHoverGestureRecognizer) {
+        switch gesture.state {
+        case .began, .changed:
+            delegate?.gestureManagerDidPointerMove(self)
+        default:
+            break
+        }
     }
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {

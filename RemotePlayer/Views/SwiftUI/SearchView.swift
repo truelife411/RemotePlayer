@@ -21,6 +21,8 @@ struct SearchView: View {
     @State private var imageViewerFile: SMBFile?
     /// 搜索框聚焦（进入页面自动聚焦）。
     @FocusState private var searchFocused: Bool
+    /// iPad 上网格/列表切换。
+    @State private var isGridView = true
 
     var body: some View {
         NavigationStack {
@@ -51,6 +53,13 @@ struct SearchView: View {
                             }
                         } label: {
                             Image(systemName: "arrow.triangle.2.circlepath")
+                        }
+                        if hSizeClass == .regular {
+                            Button {
+                                isGridView.toggle()
+                            } label: {
+                                Image(systemName: isGridView ? "list.bullet" : "square.grid.2x2")
+                            }
                         }
                         sortMenu(viewModel: viewModel!)
                         filterMenu(viewModel: viewModel!)
@@ -98,7 +107,11 @@ struct SearchView: View {
                 emptyState(viewModel: viewModel)
             } else {
                 if hSizeClass == .regular {
-                    gridResults(viewModel: viewModel)
+                    if isGridView {
+                        gridResults(viewModel: viewModel)
+                    } else {
+                        iPadListResults(viewModel: viewModel)
+                    }
                 } else {
                     listResults(viewModel: viewModel)
                 }
@@ -168,6 +181,75 @@ struct SearchView: View {
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    // MARK: - iPad 结果列表（带列头）
+
+    @ViewBuilder
+    private func iPadListResults(viewModel: SearchViewModel) -> some View {
+        List {
+            ForEach(viewModel.results) { file in
+                FileRowView(file: file,
+                            serverID: coordinator.connectedServer?.id,
+                            subtitle: file.parentPath.isEmpty ? "根目录" : file.parentPath)
+                    .contentShape(Rectangle())
+                    .onTapGesture { handleTap(file) }
+            }
+        }
+        .listStyle(.insetGrouped)
+        // 列表顶部插入可点击排序的列头
+        .safeAreaInset(edge: .top, spacing: 0) {
+            sortHeader(viewModel: viewModel)
+        }
+    }
+
+    /// 列头行：名称 | 大小 | 修改时间，点击切换升/降序。
+    @ViewBuilder
+    private func sortHeader(viewModel: SearchViewModel) -> some View {
+        HStack(spacing: 0) {
+            sortColumn(title: "名称",
+                       asc: .nameAsc, desc: .nameDesc, viewModel: viewModel)
+            sortColumn(title: "大小",
+                       asc: .sizeAsc, desc: .sizeDesc, viewModel: viewModel)
+            sortColumn(title: "修改时间",
+                       asc: .modifiedAsc, desc: .modifiedDesc, viewModel: viewModel)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .background(.ultraThinMaterial)
+    }
+
+    @ViewBuilder
+    private func sortColumn(title: String,
+                             asc: FileSortOption, desc: FileSortOption,
+                             viewModel: SearchViewModel) -> some View {
+        let current = viewModel.sortOption
+        let isActive = (current == asc || current == desc)
+        let isAsc = (current == asc)
+
+        Button {
+            if isActive {
+                viewModel.sortOption = isAsc ? desc : asc
+            } else {
+                viewModel.sortOption = asc
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(isActive ? .semibold : .regular)
+                if isActive {
+                    Image(systemName: isAsc ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+            }
+            .foregroundStyle(isActive ? .primary : .secondary)
+        }
+        .buttonStyle(.plain)
+
+        if asc != .modifiedDesc {
+            Spacer(minLength: 8)
+        }
     }
 
     // MARK: - 结果网格（iPad）

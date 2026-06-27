@@ -25,6 +25,8 @@ protocol PlayerControlOverlayDelegate: AnyObject {
     func overlay(_ overlay: PlayerControlOverlay, didChangeBrightness value: CGFloat)
     /// 音量滑块拖动回调（0...1）
     func overlay(_ overlay: PlayerControlOverlay, didChangeVolume value: Float)
+    /// 可见性改变通知
+    func overlayVisibilityDidChange(isVisible: Bool)
 }
 
 final class PlayerControlOverlay: UIView {
@@ -554,6 +556,17 @@ final class PlayerControlOverlay: UIView {
         } else {
             cancelAutoHideTimer()
         }
+    }
+
+    /// 强制显示控制面板并重置自动隐藏计时器（用于响应鼠标指针移动）。
+    func showControlsAndResetTimer() {
+        if !isControlVisible {
+            isControlVisible = true
+            applyVisibility(animated: true)
+            // 首次显示时通知外层进行必要的状态同步（如同步系统音量/亮度到滑块）
+            delegate?.overlayVisibilityDidChange(isVisible: true)
+        }
+        resetAutoHideTimer()
     }
 
     /// 通知面板有用户交互（如外部手势 seek），重置自动隐藏计时。

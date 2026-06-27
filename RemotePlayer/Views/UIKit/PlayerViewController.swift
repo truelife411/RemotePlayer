@@ -477,6 +477,12 @@ extension PlayerViewController: PlayerControlOverlayDelegate {
         // 系统音量变化后回写滑块（音量键调节时同步）
         overlay.updateVolume(VolumeController.currentVolume)
     }
+
+    func overlayVisibilityDidChange(isVisible: Bool) {
+        if isVisible {
+            syncControlValuesToOverlay()
+        }
+    }
 }
 
 // MARK: - GestureManagerDelegate
@@ -487,6 +493,10 @@ extension PlayerViewController: GestureManagerDelegate {
         overlay.toggleVisibility()
         // 面板可见时同步一次亮度/音量滑块，避免初始位置不对
         syncControlValuesToOverlay()
+    }
+
+    func gestureManagerDidPointerMove(_ manager: GestureManager) {
+        overlay.showControlsAndResetTimer()
     }
 
     /// 拖动快进进行中：重置面板自动隐藏计时。

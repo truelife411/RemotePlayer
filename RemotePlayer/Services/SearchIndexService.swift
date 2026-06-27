@@ -80,24 +80,33 @@ final class SearchIndexService {
         buildingServerID = serverID
 
         // 检查是否有断点
-        if let cp = loadCheckpoint(serverID: serverID), !cp.pendingDirs.isEmpty {
+        if let cp = loadCheckpoint(serverID: serverID) {
             files = cp.files
-            state = .indexing(fileCount: files.count, dirCount: cp.scannedDirs)
-            indexTask = Task { [weak self] in
-                await self?.buildIndex(smbService: smbService,
-                                       serverID: serverID,
-                                       queue: cp.pendingDirs,
-                                       scannedDirs: cp.scannedDirs)
+            if cp.pendingDirs.isEmpty {
+                // 如果 pendingDirs 为空，说明之前已经构建完成了
+                state = .ready(fileCount: files.count)
+                buildingServerID = nil
+                return
+            } else {
+                // 还有没扫完的目录，断点续做
+                state = .indexing(fileCount: files.count, dirCount: cp.scannedDirs)
+                indexTask = Task { [weak self] in
+                    await self?.buildIndex(smbService: smbService,
+                                           serverID: serverID,
+                                           queue: cp.pendingDirs,
+                                           scannedDirs: cp.scannedDirs)
+                }
+                return
             }
-        } else {
-            // 新构建：从根开始
-            state = .indexing(fileCount: 0, dirCount: 0)
-            indexTask = Task { [weak self] in
-                await self?.buildIndex(smbService: smbService,
-                                       serverID: serverID,
-                                       queue: [""],
-                                       scannedDirs: 0)
-            }
+        }
+        
+        // 新构建：从根开始
+        state = .indexing(fileCount: 0, dirCount: 0)
+        indexTask = Task { [weak self] in
+            await self?.buildIndex(smbService: smbService,
+                                   serverID: serverID,
+                                   queue: [""],
+                                   scannedDirs: 0)
         }
     }
 
